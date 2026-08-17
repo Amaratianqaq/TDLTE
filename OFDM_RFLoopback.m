@@ -1,60 +1,60 @@
 function [rxdataIQ] = OFDM_RFLoopback(txdataIQ,pcip,xsrpip)
 
-%%¶ÔÊı¾İ³¤¶È½øĞĞ²¹Áã»òÒç³öÉ¾³ı
-SAMPLE_LENGTH = 30720;                  % ÑùµãÊı30.72Msps * 1ms
+%%å¯¹æ•°æ®é•¿åº¦è¿›è¡Œè¡¥é›¶æˆ–æº¢å‡ºåˆ é™¤
+SAMPLE_LENGTH = 30720;                  % æ ·ç‚¹æ•°30.72Msps * 1ms
 TxdataI=zeros(1,SAMPLE_LENGTH);
 TxdataQ=zeros(1,SAMPLE_LENGTH);
 if length(txdataIQ)>=SAMPLE_LENGTH
     TxdataI=real(txdataIQ(1,1:SAMPLE_LENGTH));
     TxdataQ=imag(txdataIQ(1,1:SAMPLE_LENGTH));
-else 
+else
     TxdataI(1,1:length(txdataIQ))=real(txdataIQ);
     TxdataQ(1,1:length(txdataIQ))=imag(txdataIQ);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%·¢ËÍÊı¾İ´¦Àí
-%·Å´ó·åÖµ£¬¸¡µãÈ¡Õû
+%%å‘é€æ•°æ®å¤„ç†
+%æ”¾å¤§å³°å€¼ï¼Œæµ®ç‚¹å–æ•´
 len = SAMPLE_LENGTH*2;
 dataIQ = zeros(1,len);
 dataIQ(1,1:2:len-1) = TxdataI(1,:);
 dataIQ(1,2:2:len) = TxdataQ(1,:);
-dataIQ = dataIQ.*(2047/max(dataIQ));    %·Å´ó·åÖµÖÁ2000,½Ó½üÀíÂÛ·åÖµ2047
-dataIQ = fix(dataIQ);                   %¸¡µãÊıÇ¿ÖÆÈ¡Õû
+dataIQ = dataIQ.*(2047/max(dataIQ));    %æ”¾å¤§å³°å€¼è‡³2000,æ¥è¿‘ç†è®ºå³°å€¼2047
+dataIQ = fix(dataIQ);                   %æµ®ç‚¹æ•°å¼ºåˆ¶å–æ•´
 
-%·ÀÖ¹Òç³ö£¬²¢¶Ô¸ºÊı½øĞĞ²¹Âë²Ù×÷
+%é˜²æ­¢æº¢å‡ºï¼Œå¹¶å¯¹è´Ÿæ•°è¿›è¡Œè¡¥ç æ“ä½œ
 for n = 1 : len
     if dataIQ(n) > 2047
-      dataIQ(n) = 2047;
+        dataIQ(n) = 2047;
     elseif  dataIQ(n) < 0
-      dataIQ(n) = 4096 + dataIQ(n);
+        dataIQ(n) = 4096 + dataIQ(n);
     end
 end
 
-%°´½Ó¿Ú¶¨ÒåÅÅÁĞ±ÈÌØĞò
-dataIQ(1,1:2:len-1) = dataIQ(1,1:2:len).*16;    %IÂ·£ºb11~b0 ¿Õ4bits
-dataIQ(1,2:2:len) = fix(dataIQ(1,2:2:len)./256) + rem(dataIQ(1,2:2:len),256).*256;  %QÂ·£ºb7~b0 ¿Õ4bits b11~b8
+%æŒ‰æ¥å£å®šä¹‰æ’åˆ—æ¯”ç‰¹åº
+dataIQ(1,1:2:len-1) = dataIQ(1,1:2:len).*16;    %Iè·¯ï¼šb11~b0 ç©º4bits
+dataIQ(1,2:2:len) = fix(dataIQ(1,2:2:len)./256) + rem(dataIQ(1,2:2:len),256).*256;  %Qè·¯ï¼šb7~b0 ç©º4bits b11~b8
 dataIQ = uint16(dataIQ);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%¶¨ÒåÅäÖÃ²ÎÊı³£Á¿
+%%å®šä¹‰é…ç½®å‚æ•°å¸¸é‡
 test_set_sync_clock = uint8(hex2dec({'00','00','99','bb',  '69','00','00','00',  '00','00','00','00',  '00','00','00','00',  '00','00','00','00'}));%OK
-test_Set_router = uint8(hex2dec({'00','00','99','bb', '68','00','00','00',  '00','06','00','00',  '00','00','00','00',  '00','00','00','00'}));%Íø¿Ú»·»Ø%OK
+test_Set_router = uint8(hex2dec({'00','00','99','bb', '68','00','00','00',  '00','06','00','00',  '00','00','00','00',  '00','00','00','00'}));%ç½‘å£ç¯å›%OK
 test_set_delay_system = uint8(hex2dec({'00','00','99','bb', '67','00','00','00',  '00','00','00','00',  '00','00','00','00',  '00','00','00','00'}));
-test_tx_command = uint8(hex2dec({'00','00','99','bb', '65','02','00','03',  '00','01','78','00',  '00','00','00','00',  '00','00','00','00'}));%0A  10¸öÊ±Ï¶£¬03FF Ê±Ï¶¿ª¹Ø000001111111111£¬0000 ·ÖÆµ£¬7800 Êı¾İ¸öÊı/Ê±Ï¶30720%OK
-%test_tx_command = uint8(hex2dec({'00','00','99','bb', '65','0A','03','FF',  '00','03','78','00',  '00','00','00','00',  '00','00','00','00'}));%0A  10¸öÊ±Ï¶£¬03FF Ê±Ï¶¿ª¹Ø000001111111111£¬0000 ·ÖÆµ£¬7800 Êı¾İ¸öÊı/Ê±Ï¶30720
+test_tx_command = uint8(hex2dec({'00','00','99','bb', '65','02','00','03',  '00','01','78','00',  '00','00','00','00',  '00','00','00','00'}));%0A  10ä¸ªæ—¶éš™ï¼Œ03FF æ—¶éš™å¼€å…³000001111111111ï¼Œ0000 åˆ†é¢‘ï¼Œ7800 æ•°æ®ä¸ªæ•°/æ—¶éš™30720%OK
+%test_tx_command = uint8(hex2dec({'00','00','99','bb', '65','0A','03','FF',  '00','03','78','00',  '00','00','00','00',  '00','00','00','00'}));%0A  10ä¸ªæ—¶éš™ï¼Œ03FF æ—¶éš™å¼€å…³000001111111111ï¼Œ0000 åˆ†é¢‘ï¼Œ7800 æ•°æ®ä¸ªæ•°/æ—¶éš™30720
 test_Send_IQ = uint8(hex2dec({'00','00','99','bb', '64','00','00','00',  '00','00','00','00',  '00','00','00','00',  '00','00','00','00'}));
-test_Get_IQ  = uint8(hex2dec({'00','00','99','bb', '66','01','00','01',  '00','80','00','F0',  '00','00','00','00',  '00','00','00','00'}));%01 ²É¼¯Ê±Ï¶ºÅ£¬0000 ·ÖÆµ£¬0060 °üµÄÊıÁ¿96£¬00F0 °üµÄ´óĞ¡240£¨Êµ¼Ê½ÓÊÕ×Ö½ÚÊıÎªÅäÖÃÖµ³ËÒÔ4£©%OK
-%test_Get_IQ  = uint8(hex2dec({'00','00','99','bb', '66','01','00','03',  '00','60','00','F0',  '00','00','00','00',  '00','00','00','00'}));%01 ²É¼¯Ê±Ï¶ºÅ£¬0000 ·ÖÆµ£¬0060 °üµÄÊıÁ¿96£¬00F0 °üµÄ´óĞ¡240£¨Êµ¼Ê½ÓÊÕ×Ö½ÚÊıÎªÅäÖÃÖµ³ËÒÔ4£©
-    
+test_Get_IQ  = uint8(hex2dec({'00','00','99','bb', '66','01','00','01',  '00','80','00','F0',  '00','00','00','00',  '00','00','00','00'}));%01 é‡‡é›†æ—¶éš™å·ï¼Œ0000 åˆ†é¢‘ï¼Œ0060 åŒ…çš„æ•°é‡96ï¼Œ00F0 åŒ…çš„å¤§å°240ï¼ˆå®é™…æ¥æ”¶å­—èŠ‚æ•°ä¸ºé…ç½®å€¼ä¹˜ä»¥4ï¼‰%OK
+%test_Get_IQ  = uint8(hex2dec({'00','00','99','bb', '66','01','00','03',  '00','60','00','F0',  '00','00','00','00',  '00','00','00','00'}));%01 é‡‡é›†æ—¶éš™å·ï¼Œ0000 åˆ†é¢‘ï¼Œ0060 åŒ…çš„æ•°é‡96ï¼Œ00F0 åŒ…çš„å¤§å°240ï¼ˆå®é™…æ¥æ”¶å­—èŠ‚æ•°ä¸ºé…ç½®å€¼ä¹˜ä»¥4ï¼‰
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%´´½¨UDP¶ÔÏó£¬²¢´ò¿ª
-udp_obj = udp(xsrpip,13345,'LocalHost',pcip,'LocalPort',12345,'TimeOut',15,'OutputBufferSize',61440,'InputBufferSize',61440*10);
+%%åˆ›å»ºUDPå¯¹è±¡ï¼Œå¹¶æ‰“å¼€
+udp_obj = udp(xsrpip,13345,'LocalHost',pcip,'LocalPort',12345,'TimeOut',15,'OutputBufferSize',61440,'InputBufferSize',61440*10); %#ok<UDPP>
 udp_obj.Timeout=15;
 fopen(udp_obj);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%·¢ËÍÅäÖÃÃüÁî
+%%å‘é€é…ç½®å‘½ä»¤
 fwrite(udp_obj, test_set_sync_clock, 'uint8');
 fwrite(udp_obj, test_Set_router,  'uint8');
 fwrite(udp_obj, test_set_delay_system, 'uint8');
@@ -62,56 +62,56 @@ fwrite(udp_obj, test_tx_command, 'uint8');
 fwrite(udp_obj, test_Send_IQ, 'uint8');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%·¢ËÍÒÑµ÷Êı¾İ
-SEND_PACKET_LENGTH = 512;   %·¢ËÍUDP°ü³¤¶È£¬Êı¾İÎªU16£¬ËùÒÔÃ¿¸öUDP°ü·¢ËÍ×Ö½ÚÊıÊıÎª512*2£¬
+%%å‘é€å·²è°ƒæ•°æ®
+SEND_PACKET_LENGTH = 512;   %å‘é€UDPåŒ…é•¿åº¦ï¼Œæ•°æ®ä¸ºU16ï¼Œæ‰€ä»¥æ¯ä¸ªUDPåŒ…å‘é€å­—èŠ‚æ•°æ•°ä¸º512*2ï¼Œ
 for pn = 1:fix(SAMPLE_LENGTH*2/SEND_PACKET_LENGTH)
     fwrite(udp_obj, dataIQ(1,((pn-1)*SEND_PACKET_LENGTH+1) : (pn*SEND_PACKET_LENGTH)), 'uint16');
-end      
+end
 %fwrite(udp_obj, dataIQ(1,(pn*SEND_PACKET_LENGTH+1 ): (SAMPLE_LENGTH*2)),'uint16');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%·¢ËÍ²É¼¯£¨½ÓÊÕ£©Êı¾İÆô¶¯ÃüÁî
+%%å‘é€é‡‡é›†ï¼ˆæ¥æ”¶ï¼‰æ•°æ®å¯åŠ¨å‘½ä»¤
 fwrite(udp_obj, test_Get_IQ, 'uint8');
 
-%% ²É¼¯±äÁ¿³õÊ¼»¯
-RECV_PACKET_LENGTH = 240*4;                         %½ÓÊÕ°ü×Ö½ÚÊı¡£´óĞ¡ÎªÅäÖÃÖµ³ËÒÔ4¡£
-data_byte_numb = SAMPLE_LENGTH*4;                   %½ÓÊÕÊı¾İ×Ö½ÚÊı£¬0·ÖÆµ1¸öIQÑùµã¶ÔÓ¦3¸ö×Ö½Ú
-udp_data_ri = zeros(1, SAMPLE_LENGTH);        
-udp_data_rq = zeros(1, SAMPLE_LENGTH);
+%% é‡‡é›†å˜é‡åˆå§‹åŒ–
+RECV_PACKET_LENGTH = 240*4;                         %æ¥æ”¶åŒ…å­—èŠ‚æ•°ã€‚å¤§å°ä¸ºé…ç½®å€¼ä¹˜ä»¥4ã€‚
+data_byte_numb = SAMPLE_LENGTH*4;                   %æ¥æ”¶æ•°æ®å­—èŠ‚æ•°ï¼Œ0åˆ†é¢‘1ä¸ªIQæ ·ç‚¹å¯¹åº”3ä¸ªå­—èŠ‚
+udp_data_ri = zeros(1, SAMPLE_LENGTH); %#ok<NASGU>
+udp_data_rq = zeros(1, SAMPLE_LENGTH); %#ok<NASGU>
 udp_data_rr0 = zeros(1, SAMPLE_LENGTH*4);
-rxdataI = zeros(1,SAMPLE_LENGTH);
-rxdataQ = zeros(1,SAMPLE_LENGTH);
+rxdataI = zeros(1,SAMPLE_LENGTH); %#ok<PREALL>
+rxdataQ = zeros(1,SAMPLE_LENGTH); %#ok<PREALL>
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%¿ªÊ¼½ÓÊÕÊı¾İ
+%%å¼€å§‹æ¥æ”¶æ•°æ®
 recvInd = 1;
 data_byte_c = 0;
-while recvInd == 1    
-    % ´ÓÍø¿Ú¶ÁÊı¾İ
+while recvInd == 1
+    % ä»ç½‘å£è¯»æ•°æ®
     [udp_data,count] = fread(udp_obj,RECV_PACKET_LENGTH);
-    %½ÓÊÕÊı¾İÆ´½Ó
+    %æ¥æ”¶æ•°æ®æ‹¼æ¥
     for (pj = 1 : count)
         udp_data_rr0(data_byte_c+pj) = udp_data(pj);
     end
     data_byte_c = data_byte_c + count;
-    %ÅĞ¶Ï½ÓÊÕ×Ü×Ö½ÚÊı
-    if ((data_byte_c>=data_byte_numb) || (data_byte_c==0))        %Èç¹ûÊı¾İ½ÓÊÕÍê³É»ò³¬Ê±Ã»ÓĞ½ÓÊÕµ½Êı¾İÔòÍË³ö            
-        recvInd = 0;    % Í£Ö¹ÔËĞĞ          
-    end     
+    %åˆ¤æ–­æ¥æ”¶æ€»å­—èŠ‚æ•°
+    if ((data_byte_c>=data_byte_numb) || (data_byte_c==0))        %å¦‚æœæ•°æ®æ¥æ”¶å®Œæˆæˆ–è¶…æ—¶æ²¡æœ‰æ¥æ”¶åˆ°æ•°æ®åˆ™é€€å‡º
+        recvInd = 0;    % åœæ­¢è¿è¡Œ
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%¹Ø±ÕUDP¶ÔÏó
+%%å…³é—­UDPå¯¹è±¡
 fclose(udp_obj);
 delete(udp_obj);
 clear udp_obj;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%½ÓÊÕÊı¾İ´¦Àí
+%%æ¥æ”¶æ•°æ®å¤„ç†
 freqDiv=1;
- [rxdataI,rxdataQ]=OFDM_RxDataDeal(udp_data_rr0,freqDiv,data_byte_numb);
+[rxdataI,rxdataQ]=OFDM_RxDataDeal(udp_data_rr0,freqDiv,data_byte_numb);
 
-rxdataIQ=rxdataI+rxdataQ*i;
+rxdataIQ=rxdataI+rxdataQ*1i;
 rxdataIQ=rxdataIQ/2047;
 %plot(rxdataI)
 end
