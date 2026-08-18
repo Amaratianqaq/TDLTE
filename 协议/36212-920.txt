@@ -1,0 +1,4488 @@
+3GPP TS 36.212 V9.2.0 (2010-06)
+Technical Specification
+3rd Generation Partnership Project;
+Technical Specification Group Radio Access Network;
+Evolved Universal Terrestrial Radio Access (E-UTRA);
+Multiplexing and channel coding
+(Release 9)
+
+
+
+
+The present document has been developed within the 3rd Generation Partnership Project (3GPP TM) and may be further elaborated for the purposes of 3GPP.The present document has not been subject to any approval process by the 3GPP Organizational Partners and shall not be implemented.This Specification is provided for future development work within 3GPP only. The Organizational Partners accept no liability for any use of this Specification.Specifications and reports for implementation of the 3GPP TM system should be obtained via the 3GPP Organizational Partners’ Publications Offices.
+
+
+
+
+Keywords
+<keyword[, keyword]>
+
+3GPP
+Postal address
+
+3GPP support office address
+650 Route des Lucioles – Sophia Antipolis
+Valbonne – France
+Tel. : +33 4 92 94 42 00 Fax : +33 4 93 65 47 16
+Internet
+http://www.3gpp.org
+
+Copyright Notification
+No part may be reproduced except as authorized by written permission.The copyright and the foregoing restriction extend to reproduction in all media.
+
+© 2010, 3GPP Organizational Partners (ARIB, ATIS, CCSA, ETSI, TTA, TTC).
+All rights reserved.
+UMTS™ is a Trade Mark of ETSI registered for the benefit of its members
+3GPP™ is a Trade Mark of ETSI registered for the benefit of its Members and of the 3GPP Organizational PartnersLTE™ is a Trade Mark of ETSI currently being registered for the benefit of its Members and of the 3GPP Organizational Partners
+GSM® and the GSM logo are registered and owned by the GSM Association
+
+Contents
+Foreword5
+1Scope6
+2References6
+3Definitions, symbols and abbreviations6
+3.1 Definitions6
+3.2Symbols6
+3.3 Abbreviations7
+4Mapping to physical channels7
+4.1Uplink7
+4.2Downlink8
+5Channel coding, multiplexing and interleaving8
+5.1Generic procedures8
+5.1.1CRC calculation8
+5.1.2Code block segmentation and code block CRC attachment9
+5.1.3Channel coding10
+5.1.3.1Tail biting convolutional coding11
+5.1.3.2Turbo coding12
+5.1.3.2.1Turbo encoder12
+5.1.3.2.2Trellis termination for turbo encoder13
+5.1.3.2.3Turbo code internal interleaver13
+5.1.4Rate matching15
+5.1.4.1Rate matching for turbo coded transport channels15
+5.1.4.1.1Sub-block interleaver15
+5.1.4.1.2Bit collection, selection and transmission16
+5.1.4.2Rate matching for convolutionally coded transport channels and control information18
+5.1.4.2.1Sub-block interleaver18
+5.1.4.2.2Bit collection, selection and transmission19
+5.1.5Code block concatenation20
+5.2Uplink transport channels and control information20
+5.2.1Random access channel20
+5.2.2Uplink shared channel20
+5.2.2.1Transport block CRC attachment21
+5.2.2.2Code block segmentation and code block CRC attachment22
+5.2.2.3Channel coding of UL-SCH22
+5.2.2.4Rate matching22
+5.2.2.5Code block concatenation22
+5.2.2.6 Channel coding of control information22
+5.2.2.6.1Channel quality information formats for wideband CQI reports27
+5.2.2.6.2Channel quality information formats for higher layer configured subband CQI reports28
+5.2.2.6.3Channel quality information formats for UE selected subband CQI reports29
+5.2.2.6.4Channel coding for CQI/PMI information in PUSCH30
+5.2.2.7 Data and control multiplexing31
+5.2.2.8 Channel interleaver32
+5.2.3Uplink control information on PUCCH34
+5.2.3.1Channel coding for UCI HARQ-ACK34
+5.2.3.2Channel coding for UCI scheduling request34
+5.2.3.3Channel coding for UCI channel quality information35
+5.2.3.3.1Channel quality information formats for wideband reports35
+5.2.3.3.2Channel quality information formats for UE-selected sub-band reports36
+5.2.3.4Channel coding for UCI channel quality information and HARQ-ACK37
+5.2.4Uplink control information on PUSCH without UL-SCH data38
+5.2.4.1 Channel coding of control information38
+5.2.4.2 Control information mapping39
+5.2.4.3 Channel interleaver39
+5.3Downlink transport channels and control information39
+5.3.1Broadcast channel39
+5.3.1.1Transport block CRC attachment40
+5.3.1.2Channel coding40
+5.3.1.3 Rate matching41
+5.3.2Downlink shared channel, Paging channel and Multicast channel41
+5.3.2.1Transport block CRC attachment42
+5.3.2.2Code block segmentation and code block CRC attachment42
+5.3.2.3Channel coding42
+5.3.2.4Rate matching42
+5.3.2.5Code block concatenation42
+5.3.3Downlink control information43
+5.3.3.1DCI formats43
+5.3.3.1.1Format 043
+5.3.3.1.2Format 144
+5.3.3.1.3Format 1A45
+5.3.3.1.3AFormat 1B47
+5.3.3.1.4Format 1C48
+5.3.3.1.4AFormat 1D48
+5.3.3.1.5Format 249
+5.3.3.1.5AFormat 2A53
+5.3.3.1.5BFormat 2B55
+5.3.3.1.6Format 356
+5.3.3.1.7Format 3A56
+5.3.3.2CRC attachment57
+5.3.3.3Channel coding57
+5.3.3.4Rate matching57
+5.3.4Control format indicator58
+5.3.4.1Channel coding58
+5.3.5HARQ indicator (HI)58
+5.3.5.1Channel coding59
+Annex A (informative):Change history60
+
+Foreword
+This Technical Specification has been produced by the 3rd Generation Partnership Project (3GPP).
+The contents of the present document are subject to continuing work within the TSG and may change following formal TSG approval. Should the TSG modify the contents of the present document, it will be re-released by the TSG with an identifying change of release date and an increase in version number as follows:
+Version x.y.z
+where:
+xthe first digit:
+1presented to TSG for information;
+2presented to TSG for approval;
+3or greater indicates TSG approved document under change control.
+Ythe second digit is incremented for all changes of substance, i.e. technical enhancements, corrections, updates, etc.
+zthe third digit is incremented when editorial only changes have been incorporated in the document.
+1Scope
+The present document specifies the coding, multiplexing and mapping to physical channels for E-UTRA.
+2References
+The following documents contain provisions which, through reference in this text, constitute provisions of the present document.
+References are either specific (identified by date of publication, edition number, version number, etc.) or nonspecific.
+For a specific reference, subsequent revisions do not apply.
+For a non-specific reference, the latest version applies. In the case of a reference to a 3GPP document (including a GSM document), a non-specific reference implicitly refers to the latest version of that document in the same Release as the present document.
+[1]3GPP TR 21.905: "Vocabulary for 3GPP Specifications".
+[2]3GPP TS 36.211: "Evolved Universal Terrestrial Radio Access (E-UTRA); Physical channels and modulation".
+[3]3GPP TS 36.213: "Evolved Universal Terrestrial Radio Access (E-UTRA); Physical layer procedures".
+[4]3GPP TS 36.306: "Evolved Universal Terrestrial Radio Access (E-UTRA); User Equipment (UE) radio access capabilities".
+[5]3GPP TS36.321, “Evolved Universal Terrestrial Radio Access (E-UTRA); Medium Access Control (MAC) protocol specification” 
+[6]3GPP TS36.331, “Evolved Universal Terrestrial Radio Access (E-UTRA); Radio Resource Control (RRC) protocol specification”
+
+3Definitions, symbols and abbreviations
+3.1 Definitions
+For the purposes of the present document, the terms and definitions given in [1] and the following apply. A term defined in the present document takes precedence over the definition of the same term, if any, in [1].
+Definition format
+<defined term>: <definition>.
+3.2Symbols
+For the purposes of the present document, the following symbols apply:
+Downlink bandwidth configuration, expressed in number of resource blocks [2]
+Uplink bandwidth configuration, expressed in number of resource blocks [2]
+Number of SC-FDMA symbols carrying PUSCH in a subframe
+Number of SC-FDMA symbols carrying PUSCH in the initial PUSCH transmission subframe
+Number of SC-FDMA symbols in an uplink slot 
+Number of SC-FDMA symbols used for SRS transmission in a subframe (0 or 1). 
+
+3.3 Abbreviations
+For the purposes of the present document, the following abbreviations apply:
+
+BCHBroadcast channel
+CFIControl Format Indicator
+CPCyclic Prefix
+DCIDownlink Control Information
+DL-SCHDownlink Shared channel
+FDDFrequency Division Duplexing
+HIHARQ indicator
+MCHMulticast channel
+PBCHPhysical Broadcast channel
+PCFICHPhysical Control Format Indicator channel
+PCHPaging channel
+PDCCH Physical Downlink Control channel
+PDSCHPhysical Downlink Shared channel
+PHICHPhysical HARQ indicator channel
+PMCHPhysical Multicast channel
+PMIPrecoding Matrix Indicator
+PRACHPhysical Random Access channel
+PUCCHPhysical Uplink Control channel
+PUSCHPhysical Uplink Shared channel
+RACHRandom Access channel
+RIRank Indication
+SRSSounding Reference Signal
+TDDTime Division Duplexing
+TPMITransmitted Precoding Matrix Indicator
+UCIUplink Control Information
+UL-SCHUplink Shared channel
+
+4Mapping to physical channels
+4.1Uplink
+Table 4.1-1 specifies the mapping of the uplink transport channels to their corresponding physical channels. Table 4.1-2 specifies the mapping of the uplink control channel information to its corresponding physical channel.
+Table 4.1-1
+TBL: TrCH || Physical Channel
+TBL: UL-SCH || PUSCH
+TBL: RACH || PRACH
+TrCH
+Physical Channel
+UL-SCH
+PUSCH
+RACH
+PRACH
+
+Table 4.1-2
+TBL: Control information || Physical Channel
+TBL: UCI || PUCCH, PUSCH
+Control information
+Physical Channel
+UCI
+PUCCH, PUSCH
+
+4.2Downlink
+Table 4.2-1 specifies the mapping of the downlink transport channels to their corresponding physical channels. Table 4.2-2 specifies the mapping of the downlink control channel information to its corresponding physical channel.
+Table 4.2-1
+TBL: TrCH || Physical Channel
+TBL: DL-SCH || PDSCH
+TBL: BCH || PBCH
+TBL: PCH || PDSCH
+TBL: MCH || PMCH
+TrCH
+Physical Channel
+DL-SCH
+PDSCH
+BCH
+PBCH
+PCH
+PDSCH
+MCH
+PMCH
+
+Table 4.2-2
+TBL: Control information || Physical Channel
+TBL: CFI || PCFICH
+TBL: HI || PHICH
+TBL: DCI || PDCCH
+Control information
+Physical Channel
+CFI
+PCFICH
+HI
+PHICH
+DCI
+PDCCH
+
+5Channel coding, multiplexing and interleaving
+Data and control streams from/to MAC layer are encoded /decoded to offer transport and control services over the radio transmission link.  Channel coding scheme is a combination of error detection, error correcting, rate matching, interleaving and transport channel or control information mapping onto/splitting from physical channels.
+5.1Generic procedures
+This section contains coding procedures which are used for more than one transport channel or control information type.
+5.1.1CRC calculation
+Denote the input bits to the CRC computation by, and the parity bits by. A is the size of the input sequence and L is the number of parity bits. The parity bits are generated by one of the following cyclic generator polynomials:
+-gCRC24A(D) = [D24 + D23 + D18 + D17 + D14 + D11 + D10 + D7 + D6 + D5 + D4 + D3 + D + 1] and;
+-gCRC24B(D) = [D24 + D23 + D6 + D5 + D + 1] for a CRC length L = 24 and;
+-gCRC16(D) = [D16 + D12 + D5 + 1] for a CRC length L = 16.
+-gCRC8(D) = [D8 + D7 + D4 + D3 + D + 1] for a CRC length of L = 8.
+The encoding is performed in a systematic form, which means that in GF(2), the polynomial:
+
+yields a remainder equal to 0 when divided by the corresponding length-24 CRC generator polynomial, gCRC24A(D) or gCRC24B(D), the polynomial:
+
+yields a remainder equal to 0 when divided by gCRC16(D), and the polynomial: 
+
+yields a remainder equal to 0 when divided by gCRC8(D).
+The bits after CRC attachment are denoted by, where B = A+ L. The relation between ak and bk is:
+ for k = 0, 1, 2, …, A-1
+for k = A, A+1, A+2,..., A+L-1.
+
+5.1.2Code block segmentation and code block CRC attachment
+The input bit sequence to the code block segmentation is denoted by, where B > 0. If B is larger than the maximum code block size Z, segmentation of the input bit sequence is performed and an additional CRC sequence of L = 24 bits is attached to each code block.  The maximum code block size is:
+-Z = 6144.
+If the number of filler bits F calculated below is not 0, filler bits are added to the beginning of the first block. 
+Note that if B < 40, filler bits are added to the beginning of the code block. 
+The filler bits shall be set to <NULL> at the input to the encoder. 
+Total number of code blocks C is determined by:
+if 
+L = 0
+Number of code blocks: 
+
+else
+L = 24
+Number of code blocks: .
+
+end if
+The bits output from code block segmentation, for C  0, are denoted by , where r is the code block number, and Kr is the number of bits for the code block number r.
+Number of bits in each code block (applicable for C  0 only):
+First segmentation size: = minimum K in table 5.1.3-3 such that 
+if 
+the number of code blocks with length  is =1, , 
+else if 
+Second segmentation size: = maximum K in table 5.1.3-3 such that  
+
+Number of segments of size: .
+Number of segments of size: .
+end if
+Number of filler bits: 
+for k = 0 to F-1-- Insertion of filler bits
+
+end for
+k = F
+s = 0
+for r = 0 to C-1
+if  
+
+else
+
+end if
+while 
+
+
+
+end while
+if C >1 
+The sequence  is used to calculate the CRC parity bits  according to section 5.1.1 with the generator polynomial gCRC24B(D). For CRC calculation it is assumed that filler bits, if present, have the value 0.
+while
+
+
+end while
+end if
+
+end for
+5.1.3Channel coding
+The bit sequence input for a given code block to channel coding is denoted by, where K is the number of bits to encode. After encoding the bits are denoted by, where D is the number of encoded bits per output stream and i indexes the encoder output stream. The relation between  and  and between K and D is dependent on the channel coding scheme.
+The following channel coding schemes can be applied to TrCHs:
+-tail biting convolutional coding;
+-turbo coding.
+Usage of coding scheme and coding rate for the different types of TrCH is shown in table 5.1.3-1. Usage of coding scheme and coding rate for the different control information types is shown in table 5.1.3-2.
+The values of D in connection with each coding scheme:
+-tail biting convolutional coding with rate 1/3: D = K;
+-turbo coding with rate 1/3: D = K + 4.
+The range for the output stream index i is 0, 1 and 2 for both coding schemes.   
+Table 5.1.3-1: Usage of channel coding scheme and coding rate for TrCHs.
+TBL: TrCH || Coding scheme || Coding rate
+TBL: UL-SCH || Turbo coding || 1/3
+TBL: DL-SCH ||  || 
+TBL: PCH ||  || 
+TBL: MCH ||  || 
+TBL: BCH || Tail biting convolutional coding || 1/3
+TrCH
+Coding scheme
+Coding rate
+UL-SCH
+Turbo coding
+1/3
+DL-SCH
+
+
+PCH
+
+
+MCH
+
+
+BCH
+Tail biting convolutional coding
+1/3
+
+Table 5.1.3-2: Usage of channel coding scheme and coding rate for control information.
+TBL: Control Information || Coding scheme || Coding rate
+TBL: DCI || Tail biting convolutional coding || 1/3
+TBL: CFI || Block code || 1/16
+TBL: HI || Repetition code || 1/3
+TBL: UCI || Block code（o<=11 PUSCH的UCI） || variable
+TBL:  || Tail biting convolutional coding（o>11 PUSCH的UCI） || 1/3
+Control Information
+Coding scheme
+Coding rate
+DCI
+Tail biting convolutional coding
+1/3
+CFI
+Block code
+1/16
+HI
+Repetition code
+1/3
+UCI
+Block code（o<=11 PUSCH的UCI）
+variable
+
+Tail biting convolutional coding（o>11 PUSCH的UCI）
+1/3
+
+5.1.3.1Tail biting convolutional coding
+A tail biting convolutional code with constraint length 7 and coding rate 1/3 is defined.
+The configuration of the convolutional encoder is presented in figure 5.1.3-1.
+The initial value of the shift register of the encoder shall be set to the values corresponding to the last 6 information bits in the input stream so that the initial and final states of the shift register are the same. Therefore, denoting the shift register of the encoder by, then the initial value of the shift register shall be set to
+
+
+Figure 5.1.3-1: Rate 1/3 tail biting convolutional encoder.
+The encoder output streams,  and  correspond to the first, second and third parity streams, respectively as shown in Figure 5.1.3-1. 
+5.1.3.2Turbo coding
+5.1.3.2.1Turbo encoder
+The scheme of turbo encoder is a Parallel Concatenated Convolutional Code (PCCC) with two 8-state constituent encoders and one turbo code internal interleaver.  The coding rate of turbo encoder is 1/3.  The structure of turbo encoder is illustrated in figure 5.1.3-2.
+The transfer function of the 8-state constituent code for the PCCC is:
+G(D) = ,
+where
+g0(D) = 1 + D2 + D3,
+g1(D) = 1 + D + D3. 
+The initial value of the shift registers of the 8-state constituent encoders shall be all zeros when starting to encode the input bits.
+The output from the turbo encoder is
+
+
+
+for .
+If the code block to be encoded is the 0-th code block and the number of filler bits is greater than zero, i.e., F > 0, then the encoder shall set ck, = 0, k = 0,…,(F-1) at its input and shall set , k = 0,…,(F-1) and , k = 0,…,(F-1) at its output. 
+The bits input to the turbo encoder are denoted by, and the bits output from the first and second 8-state constituent encoders are denoted by and, respectively. The bits output from the turbo code internal interleaver are denoted by, and these bits are to be the input to the second 8-state constituent encoder.
+
+
+Figure 5.1.3-2: Structure of rate 1/3 turbo encoder (dotted lines apply for trellis termination only).
+5.1.3.2.2Trellis termination for turbo encoder
+Trellis termination is performed by taking the tail bits from the shift register feedback after all information bits are encoded. Tail bits are padded after the encoding of information bits.
+The first three tail bits shall be used to terminate the first constituent encoder (upper switch of figure 5.1.3-2 in lower position) while the second constituent encoder is disabled. The last three tail bits shall be used to terminate the second constituent encoder (lower switch of figure 5.1.3-2 in lower position) while the first constituent encoder is disabled.
+The transmitted bits for trellis termination shall then be:
+, , , 
+, , , 
+, , , 
+5.1.3.2.3Turbo code internal interleaver
+The bits input to the turbo code internal interleaver are denoted by, where K is the number of input bits. The bits output from the turbo code internal interleaver are denoted by. 
+The relationship between the input and output bits is as follows:
+, i=0, 1,…, (K-1)
+where the relationship between the output index i and the input index  satisfies the following quadratic form:
+
+The parameters  and  depend on the block size K and are summarized in Table 5.1.3-3.
+Table 5.1.3-3: Turbo code internal interleaver parameters.
+TBL: i || K ||  ||  || i || K ||  ||  || i || K ||  ||  || i || K ||  || 
+TBL: 1 || 40 || 3 || 10 || 48 || 416 || 25 || 52 || 95 || 1120 || 67 || 140 || 142 || 3200 || 111 || 240
+TBL: 2 || 48 || 7 || 12 || 49 || 424 || 51 || 106 || 96 || 1152 || 35 || 72 || 143 || 3264 || 443 || 204
+TBL: 3 || 56 || 19 || 42 || 50 || 432 || 47 || 72 || 97 || 1184 || 19 || 74 || 144 || 3328 || 51 || 104
+TBL: 4 || 64 || 7 || 16 || 51 || 440 || 91 || 110 || 98 || 1216 || 39 || 76 || 145 || 3392 || 51 || 212
+TBL: 5 || 72 || 7 || 18 || 52 || 448 || 29 || 168 || 99 || 1248 || 19 || 78 || 146 || 3456 || 451 || 192
+TBL: 6 || 80 || 11 || 20 || 53 || 456 || 29 || 114 || 100 || 1280 || 199 || 240 || 147 || 3520 || 257 || 220
+TBL: 7 || 88 || 5 || 22 || 54 || 464 || 247 || 58 || 101 || 1312 || 21 || 82 || 148 || 3584 || 57 || 336
+TBL: 8 || 96 || 11 || 24 || 55 || 472 || 29 || 118 || 102 || 1344 || 211 || 252 || 149 || 3648 || 313 || 228
+TBL: 9 || 104 || 7 || 26 || 56 || 480 || 89 || 180 || 103 || 1376 || 21 || 86 || 150 || 3712 || 271 || 232
+TBL: 10 || 112 || 41 || 84 || 57 || 488 || 91 || 122 || 104 || 1408 || 43 || 88 || 151 || 3776 || 179 || 236
+TBL: 11 || 120 || 103 || 90 || 58 || 496 || 157 || 62 || 105 || 1440 || 149 || 60 || 152 || 3840 || 331 || 120
+TBL: 12 || 128 || 15 || 32 || 59 || 504 || 55 || 84 || 106 || 1472 || 45 || 92 || 153 || 3904 || 363 || 244
+TBL: 13 || 136 || 9 || 34 || 60 || 512 || 31 || 64 || 107 || 1504 || 49 || 846 || 154 || 3968 || 375 || 248
+TBL: 14 || 144 || 17 || 108 || 61 || 528 || 17 || 66 || 108 || 1536 || 71 || 48 || 155 || 4032 || 127 || 168
+TBL: 15 || 152 || 9 || 38 || 62 || 544 || 35 || 68 || 109 || 1568 || 13 || 28 || 156 || 4096 || 31 || 64
+TBL: 16 || 160 || 21 || 120 || 63 || 560 || 227 || 420 || 110 || 1600 || 17 || 80 || 157 || 4160 || 33 || 130
+TBL: 17 || 168 || 101 || 84 || 64 || 576 || 65 || 96 || 111 || 1632 || 25 || 102 || 158 || 4224 || 43 || 264
+TBL: 18 || 176 || 21 || 44 || 65 || 592 || 19 || 74 || 112 || 1664 || 183 || 104 || 159 || 4288 || 33 || 134
+TBL: 19 || 184 || 57 || 46 || 66 || 608 || 37 || 76 || 113 || 1696 || 55 || 954 || 160 || 4352 || 477 || 408
+TBL: 20 || 192 || 23 || 48 || 67 || 624 || 41 || 234 || 114 || 1728 || 127 || 96 || 161 || 4416 || 35 || 138
+TBL: 21 || 200 || 13 || 50 || 68 || 640 || 39 || 80 || 115 || 1760 || 27 || 110 || 162 || 4480 || 233 || 280
+TBL: 22 || 208 || 27 || 52 || 69 || 656 || 185 || 82 || 116 || 1792 || 29 || 112 || 163 || 4544 || 357 || 142
+TBL: 23 || 216 || 11 || 36 || 70 || 672 || 43 || 252 || 117 || 1824 || 29 || 114 || 164 || 4608 || 337 || 480
+TBL: 24 || 224 || 27 || 56 || 71 || 688 || 21 || 86 || 118 || 1856 || 57 || 116 || 165 || 4672 || 37 || 146
+TBL: 25 || 232 || 85 || 58 || 72 || 704 || 155 || 44 || 119 || 1888 || 45 || 354 || 166 || 4736 || 71 || 444
+TBL: 26 || 240 || 29 || 60 || 73 || 720 || 79 || 120 || 120 || 1920 || 31 || 120 || 167 || 4800 || 71 || 120
+TBL: 27 || 248 || 33 || 62 || 74 || 736 || 139 || 92 || 121 || 1952 || 59 || 610 || 168 || 4864 || 37 || 152
+TBL: 28 || 256 || 15 || 32 || 75 || 752 || 23 || 94 || 122 || 1984 || 185 || 124 || 169 || 4928 || 39 || 462
+TBL: 29 || 264 || 17 || 198 || 76 || 768 || 217 || 48 || 123 || 2016 || 113 || 420 || 170 || 4992 || 127 || 234
+TBL: 30 || 272 || 33 || 68 || 77 || 784 || 25 || 98 || 124 || 2048 || 31 || 64 || 171 || 5056 || 39 || 158
+TBL: 31 || 280 || 103 || 210 || 78 || 800 || 17 || 80 || 125 || 2112 || 17 || 66 || 172 || 5120 || 39 || 80
+TBL: 32 || 288 || 19 || 36 || 79 || 816 || 127 || 102 || 126 || 2176 || 171 || 136 || 173 || 5184 || 31 || 96
+TBL: 33 || 296 || 19 || 74 || 80 || 832 || 25 || 52 || 127 || 2240 || 209 || 420 || 174 || 5248 || 113 || 902
+TBL: 34 || 304 || 37 || 76 || 81 || 848 || 239 || 106 || 128 || 2304 || 253 || 216 || 175 || 5312 || 41 || 166
+TBL: 35 || 312 || 19 || 78 || 82 || 864 || 17 || 48 || 129 || 2368 || 367 || 444 || 176 || 5376 || 251 || 336
+TBL: 36 || 320 || 21 || 120 || 83 || 880 || 137 || 110 || 130 || 2432 || 265 || 456 || 177 || 5440 || 43 || 170
+TBL: 37 || 328 || 21 || 82 || 84 || 896 || 215 || 112 || 131 || 2496 || 181 || 468 || 178 || 5504 || 21 || 86
+TBL: 38 || 336 || 115 || 84 || 85 || 912 || 29 || 114 || 132 || 2560 || 39 || 80 || 179 || 5568 || 43 || 174
+TBL: 39 || 344 || 193 || 86 || 86 || 928 || 15 || 58 || 133 || 2624 || 27 || 164 || 180 || 5632 || 45 || 176
+TBL: 40 || 352 || 21 || 44 || 87 || 944 || 147 || 118 || 134 || 2688 || 127 || 504 || 181 || 5696 || 45 || 178
+TBL: 41 || 360 || 133 || 90 || 88 || 960 || 29 || 60 || 135 || 2752 || 143 || 172 || 182 || 5760 || 161 || 120
+TBL: 42 || 368 || 81 || 46 || 89 || 976 || 59 || 122 || 136 || 2816 || 43 || 88 || 183 || 5824 || 89 || 182
+TBL: 43 || 376 || 45 || 94 || 90 || 992 || 65 || 124 || 137 || 2880 || 29 || 300 || 184 || 5888 || 323 || 184
+TBL: 44 || 384 || 23 || 48 || 91 || 1008 || 55 || 84 || 138 || 2944 || 45 || 92 || 185 || 5952 || 47 || 186
+TBL: 45 || 392 || 243 || 98 || 92 || 1024 || 31 || 64 || 139 || 3008 || 157 || 188 || 186 || 6016 || 23 || 94
+TBL: 46 || 400 || 151 || 40 || 93 || 1056 || 17 || 66 || 140 || 3072 || 47 || 96 || 187 || 6080 || 47 || 190
+TBL: 47 || 408 || 155 || 102 || 94 || 1088 || 171 || 204 || 141 || 3136 || 13 || 28 || 188 || 6144 || 263 || 480
+i
+K
+
+
+i
+K
+
+
+i
+K
+
+
+i
+K
+
+
+1
+40
+3
+10
+48
+416
+25
+52
+95
+1120
+67
+140
+142
+3200
+111
+240
+2
+48
+7
+12
+49
+424
+51
+106
+96
+1152
+35
+72
+143
+3264
+443
+204
+3
+56
+19
+42
+50
+432
+47
+72
+97
+1184
+19
+74
+144
+3328
+51
+104
+4
+64
+7
+16
+51
+440
+91
+110
+98
+1216
+39
+76
+145
+3392
+51
+212
+5
+72
+7
+18
+52
+448
+29
+168
+99
+1248
+19
+78
+146
+3456
+451
+192
+6
+80
+11
+20
+53
+456
+29
+114
+100
+1280
+199
+240
+147
+3520
+257
+220
+7
+88
+5
+22
+54
+464
+247
+58
+101
+1312
+21
+82
+148
+3584
+57
+336
+8
+96
+11
+24
+55
+472
+29
+118
+102
+1344
+211
+252
+149
+3648
+313
+228
+9
+104
+7
+26
+56
+480
+89
+180
+103
+1376
+21
+86
+150
+3712
+271
+232
+10
+112
+41
+84
+57
+488
+91
+122
+104
+1408
+43
+88
+151
+3776
+179
+236
+11
+120
+103
+90
+58
+496
+157
+62
+105
+1440
+149
+60
+152
+3840
+331
+120
+12
+128
+15
+32
+59
+504
+55
+84
+106
+1472
+45
+92
+153
+3904
+363
+244
+13
+136
+9
+34
+60
+512
+31
+64
+107
+1504
+49
+846
+154
+3968
+375
+248
+14
+144
+17
+108
+61
+528
+17
+66
+108
+1536
+71
+48
+155
+4032
+127
+168
+15
+152
+9
+38
+62
+544
+35
+68
+109
+1568
+13
+28
+156
+4096
+31
+64
+16
+160
+21
+120
+63
+560
+227
+420
+110
+1600
+17
+80
+157
+4160
+33
+130
+17
+168
+101
+84
+64
+576
+65
+96
+111
+1632
+25
+102
+158
+4224
+43
+264
+18
+176
+21
+44
+65
+592
+19
+74
+112
+1664
+183
+104
+159
+4288
+33
+134
+19
+184
+57
+46
+66
+608
+37
+76
+113
+1696
+55
+954
+160
+4352
+477
+408
+20
+192
+23
+48
+67
+624
+41
+234
+114
+1728
+127
+96
+161
+4416
+35
+138
+21
+200
+13
+50
+68
+640
+39
+80
+115
+1760
+27
+110
+162
+4480
+233
+280
+22
+208
+27
+52
+69
+656
+185
+82
+116
+1792
+29
+112
+163
+4544
+357
+142
+23
+216
+11
+36
+70
+672
+43
+252
+117
+1824
+29
+114
+164
+4608
+337
+480
+24
+224
+27
+56
+71
+688
+21
+86
+118
+1856
+57
+116
+165
+4672
+37
+146
+25
+232
+85
+58
+72
+704
+155
+44
+119
+1888
+45
+354
+166
+4736
+71
+444
+26
+240
+29
+60
+73
+720
+79
+120
+120
+1920
+31
+120
+167
+4800
+71
+120
+27
+248
+33
+62
+74
+736
+139
+92
+121
+1952
+59
+610
+168
+4864
+37
+152
+28
+256
+15
+32
+75
+752
+23
+94
+122
+1984
+185
+124
+169
+4928
+39
+462
+29
+264
+17
+198
+76
+768
+217
+48
+123
+2016
+113
+420
+170
+4992
+127
+234
+30
+272
+33
+68
+77
+784
+25
+98
+124
+2048
+31
+64
+171
+5056
+39
+158
+31
+280
+103
+210
+78
+800
+17
+80
+125
+2112
+17
+66
+172
+5120
+39
+80
+32
+288
+19
+36
+79
+816
+127
+102
+126
+2176
+171
+136
+173
+5184
+31
+96
+33
+296
+19
+74
+80
+832
+25
+52
+127
+2240
+209
+420
+174
+5248
+113
+902
+34
+304
+37
+76
+81
+848
+239
+106
+128
+2304
+253
+216
+175
+5312
+41
+166
+35
+312
+19
+78
+82
+864
+17
+48
+129
+2368
+367
+444
+176
+5376
+251
+336
+36
+320
+21
+120
+83
+880
+137
+110
+130
+2432
+265
+456
+177
+5440
+43
+170
+37
+328
+21
+82
+84
+896
+215
+112
+131
+2496
+181
+468
+178
+5504
+21
+86
+38
+336
+115
+84
+85
+912
+29
+114
+132
+2560
+39
+80
+179
+5568
+43
+174
+39
+344
+193
+86
+86
+928
+15
+58
+133
+2624
+27
+164
+180
+5632
+45
+176
+40
+352
+21
+44
+87
+944
+147
+118
+134
+2688
+127
+504
+181
+5696
+45
+178
+41
+360
+133
+90
+88
+960
+29
+60
+135
+2752
+143
+172
+182
+5760
+161
+120
+42
+368
+81
+46
+89
+976
+59
+122
+136
+2816
+43
+88
+183
+5824
+89
+182
+43
+376
+45
+94
+90
+992
+65
+124
+137
+2880
+29
+300
+184
+5888
+323
+184
+44
+384
+23
+48
+91
+1008
+55
+84
+138
+2944
+45
+92
+185
+5952
+47
+186
+45
+392
+243
+98
+92
+1024
+31
+64
+139
+3008
+157
+188
+186
+6016
+23
+94
+46
+400
+151
+40
+93
+1056
+17
+66
+140
+3072
+47
+96
+187
+6080
+47
+190
+47
+408
+155
+102
+94
+1088
+171
+204
+141
+3136
+13
+28
+188
+6144
+263
+480
+
+5.1.4Rate matching
+5.1.4.1Rate matching for turbo coded transport channels
+The rate matching for turbo coded transport channels is defined per coded block and consists of interleaving the three information bit streams,  and, followed by the collection of bits and the generation of a circular buffer as depicted in Figure 5.1.4-1. The output bits for each code block are transmitted as described in section 5.1.4.1.2.  
+
+
+Figure 5.1.4-1. Rate matching for turbo coded transport channels.
+The bit stream is interleaved according to the sub-block interleaver defined in section 5.1.4.1.1 with an output sequence defined as and where is defined in section 5.1.4.1.1.
+The bit stream  is interleaved according to the sub-block interleaver defined in section 5.1.4.1.1 with an output sequence defined as.
+The bit stream  is interleaved according to the sub-block interleaver defined in section 5.1.4.1.1 with an output sequence defined as.
+The sequence of bits  for transmission is generated according to section 5.1.4.1.2.
+5.1.4.1.1Sub-block interleaver
+The bits input to the block interleaver are denoted by , where D is the number of bits. The output bit sequence from the block interleaver is derived as follows:
+(1)Assign to be the number of columns of the matrix. The columns of the matrix are numbered 0, 1, 2,…,from left to right.
+(2)Determine the number of rows of the matrix, by finding minimum integer  such that:
+
+The rows of rectangular matrix are numbered 0, 1, 2,…,from top to bottom.
+(3)If, then  dummy bits are padded such that yk = <NULL> for k = 0, 1,…, ND - 1.  Then, , k = 0, 1,…, D-1, and the bit sequence yk is written into the matrix row by row starting with bit y0 in column 0 of row 0:
+
+For and:
+(4)Perform the inter-column permutation for the matrix based on the pattern that is shown in table 5.1.4-1, where P(j) is the original column position of the j-th permuted column. After permutation of the columns, the inter-column permuted matrix is equal to
+ 
+(5)The output of the block interleaver is the bit sequence read out column by column from the inter-column permuted matrix. The bits after sub-block interleaving are denoted by, where  corresponds to, to… and.
+For:
+(4) The output of the sub-block interleaver is denoted by, where  and where
+
+The permutation function P is defined in Table 5.1.4-1.
+Table 5.1.4-1 Inter-column permutation pattern for sub-block interleaver.
+TBL: Number of columns  || Inter-column permutation pattern
+TBL: 32 || < 0, 16, 8, 24, 4, 20, 12, 28, 2, 18, 10, 26, 6, 22, 14, 30, 1, 17, 9, 25, 5, 21, 13, 29, 3, 19, 11, 27, 7, 23, 15, 31 >
+Number of columns 
+Inter-column permutation pattern
+
+32
+< 0, 16, 8, 24, 4, 20, 12, 28, 2, 18, 10, 26, 6, 22, 14, 30, 1, 17, 9, 25, 5, 21, 13, 29, 3, 19, 11, 27, 7, 23, 15, 31 >
+
+5.1.4.1.2Bit collection, selection and transmission
+The circular buffer of length  for the r-th coded block is generated as follows:
+ for k = 0,…, 
+ for k = 0,…, 
+ for k = 0,…, 
+Denote the soft buffer size for the transport block by NIR bits and the soft buffer size for the r-th code block by Ncb bits. The size Ncb is obtained as follows, where C is the number of code blocks computed in section 5.1.2:
+- for downlink turbo coded transport channels-  for uplink turbo coded transport channels
+where NIR is equal to:
+
+where:
+Nsoft is the total number of soft channel bits [4].
+
+理解：在上行Turbo编码的情况下，Ncb = Kw，但是在下行Turbo编码的情况下Ncb需要根据NIR来计算，NIR的计算需要根据Nsoft来计算，Nsoft是根据UE的能力级来定的，UE的能力级为1~5级，每级对应的总Bit数为250368，1237248，1237248，1827072，3667200，是一个常数
+
+KMIMO is equal to 2 if the UE is configured to receive PDSCH transmissions based on transmission modes 3, 4 or 8 as defined in section 7.1 of [3], 1 otherwise.
+MDL_HARQ is the maximum number of DL HARQ processes as defined in section 7 of [3].
+理解：FDD最大下行HARQ数为8，TDD根据不同的配比是不同的。
+Mlimit is a constant equal to 8.
+Denoting by E the rate matching output sequence length for the r-th coded block, and rvidx the redundancy version number for this transmission (rvidx = 0, 1, 2 or 3), the rate matching output bit sequence is , k = 0,1,..., .
+Define by G the total number of bits available for the transmission of one transport block.
+理解：G表示在空口上能够传输除控制信息的Bit数，，E表示第r个码块最终要在空口资源上传的比特数，不同的码块在空口上传的比特数可能不一致，需要根据r与来判决，有一个向上和向下取整的操作。
+Set where Qm is equal to 2 for QPSK, 4 for 16QAM and 6 for 64QAM, and where
+NL is equal to 1 for transport blocks mapped onto one transmission layer, and 
+NL is equal to 2 for transport blocks mapped onto two or four transmission layers.
+Set, where C is the number of code blocks computed in section 5.1.2.
+if 
+set
+else
+set
+end if
+Set, where  is the number of rows defined in section 5.1.4.1.1.
+Set k = 0 and j = 0
+while { k < E }
+if 
+
+k = k +1
+end if
+j = j +1
+end while
+5.1.4.2Rate matching for convolutionally coded transport channels and control information
+The rate matching for convolutionally coded transport channels and control information consists of interleaving the three bit streams, ,  and , followed by the collection of bits and the generation of a circular buffer as depicted in Figure 5.1.4-2. The output bits are transmitted as described in section 5.1.4.2.2.  
+
+Figure 5.1.4-2. Rate matching for convolutionally coded transport channels and control information.
+The bit stream  is interleaved according to the sub-block interleaver defined in section 5.1.4.2.1 with an output sequence defined as  and where  is defined in section 5.1.4.2.1.
+The bit stream  is interleaved according to the sub-block interleaver defined in section 5.1.4.2.1 with an output sequence defined as.
+The bit stream  is interleaved according to the sub-block interleaver defined in section 5.1.4.2.1 with an output sequence defined as.
+The sequence of bits  for transmission is generated according to section 5.1.4.2.2.
+5.1.4.2.1Sub-block interleaver
+The bits input to the block interleaver are denoted by, where D is the number of bits. The output bit sequence from the block interleaver is derived as follows:
+(1)Assignto be the number of columns of the matrix. The columns of the matrix are numbered 0, 1, 2,…,from left to right.
+(2)Determine the number of rows of the matrix, by finding minimum integer  such that:
+
+The rows of rectangular matrix are numbered 0, 1, 2,…,from top to bottom.
+(3)If, then dummy bits are padded such that yk = <NULL> for k = 0, 1,…, ND - 1.  Then, , k = 0, 1,…, D-1, and the bit sequence yk is written into the matrix row by row starting with bit y0 in column 0 of row 0:
+
+(4) Perform the inter-column permutation for the matrix based on the pattern that is shown in table 5.1.4-2, where P(j) is the original column position of the j-th permuted column. After permutation of the columns, the inter-column permuted matrix is equal to
+ 
+(5)The output of the block interleaver is the bit sequence read out column by column from the inter-column permutedmatrix. The bits after sub-block interleaving are denoted by, where  corresponds to,  to… and  
+Table 5.1.4-2 Inter-column permutation pattern for sub-block interleaver.
+TBL: Number of columns  || Inter-column permutation pattern
+TBL: 32 || < 1, 17, 9, 25, 5, 21, 13, 29, 3, 19, 11, 27, 7, 23, 15, 31, 0, 16, 8, 24, 4, 20, 12, 28, 2, 18, 10, 26, 6, 22, 14, 30 >
+Number of columns 
+Inter-column permutation pattern
+
+32
+< 1, 17, 9, 25, 5, 21, 13, 29, 3, 19, 11, 27, 7, 23, 15, 31, 0, 16, 8, 24, 4, 20, 12, 28, 2, 18, 10, 26, 6, 22, 14, 30 >
+
+This block interleaver is also used in interleaving PDCCH modulation symbols. In that case, the input bit sequence consists of PDCCH symbol quadruplets [2].
+5.1.4.2.2Bit collection, selection and transmission
+The circular buffer of length  is generated as follows:
+ for k = 0,…, 
+ for k = 0,…, 
+ for k = 0,…, 
+Denoting by E the rate matching output sequence length, the rate matching output bit sequence is , k = 0,1,..., .
+Set k = 0 and j = 0
+while { k < E }
+if 
+
+k = k +1
+end if
+j = j +1
+end while
+5.1.5Code block concatenation
+The input bit sequence for the code block concatenation block are the sequences , for  and . The output bit sequence from the code block concatenation block is the sequence  for . 
+The code block concatenation consists of sequentially concatenating the rate matching outputs for the different code blocks. Therefore, 
+Set  and 
+while 
+Set 
+while  
+
+
+
+end while
+
+end while
+5.2Uplink transport channels and control information
+5.2.1Random access channel
+The sequence index for the random access channel is received from higher layers and is processed according to [2]. 
+5.2.2Uplink shared channel
+Figure 5.2.2-1 shows the processing structure for the UL-SCH transport channel. Data arrives to the coding unit in the form of a maximum of one transport block every transmission time interval (TTI). The following coding steps can be identified:
+Add CRC to the transport block
+Code block segmentation and code block CRC attachment
+Channel coding of data and control information
+Rate matching
+Code block concatenation
+Multiplexing of data and control information
+Channel interleaver
+The coding steps for UL-SCH transport channel are shown in the figure below. 
+
+Figure 5.2.2-1: Transport channel processing for UL-SCH.
+5.2.2.1Transport block CRC attachment
+Error detection is provided on UL-SCH transport blocks through a Cyclic Redundancy Check (CRC). 
+The entire transport block is used to calculate the CRC parity bits. Denote the bits in a transport block delivered to layer 1 by, and the parity bits by. A is the size of the transport block and L is the number of parity bits. The lowest order information bit a0 is mapped to the most significant bit of the transport block as defined in section 6.1.1 of [5].
+The parity bits are computed and attached to the UL-SCH transport block according to section 5.1.1 setting L to 24 bits and using the generator polynomial gCRC24A(D). 
+5.2.2.2Code block segmentation and code block CRC attachment
+The bits input to the code block segmentation are denoted by  where B is the number of bits in the transport block (including CRC). 
+Code block segmentation and code block CRC attachment are performed according to section 5.1.2. 
+The bits after code block segmentation are denoted by, where r is the code block number and Kr is the number of bits for code block number r. 
+5.2.2.3Channel coding of UL-SCH
+Code blocks are delivered to the channel coding block. The bits in a code block are denoted by  , where r is the code block number, and Kr is the number of bits in code block number r. The total number of code blocks is denoted by C and each code block is individually turbo encoded according to section 5.1.3.2. 
+After encoding the bits are denoted by, withand whereis the number of bits on the i-th coded stream for code block number r, i.e.. 
+5.2.2.4Rate matching
+Turbo coded blocks are delivered to the rate matching block. They are denoted by, with, and where r is the code block number, i is the coded stream index, and  is the number of bits in each coded stream of code block number r. The total number of code blocks is denoted by C and each coded block is individually rate matched according to section 5.1.4.1.
+After rate matching, the bits are denoted by, where r is the coded block number, and where  is the number of rate matched bits for code block number r. 
+5.2.2.5Code block concatenation
+The bits input to the code block concatenation block are denoted by  for  and where  is the number of rate matched bits for the r-th code block. 
+Code block concatenation is performed according to section 5.1.5. 
+The bits after code block concatenation are denoted by , where G is the total number of coded bits for transmission excluding the bits used for control transmission, when control information is multiplexed with the UL-SCH transmission. 
+5.2.2.6 Channel coding of control information
+Control data arrives at the coding unit in the form of channel quality information (CQI and/or PMI), HARQ-ACK and rank indication. Different coding rates for the control information are achieved by allocating different number of coded symbols for its transmission. When control data are transmitted in the PUSCH, the channel coding for HARQ-ACK, rank indication and channel quality information  is done independently. 
+For TDD, two HARQ-ACK feedback modes are supported by higher layer configuration.
+HARQ-ACK bundling, and 
+HARQ-ACK multiplexing 
+For TDD HARQ-ACK bundling, HARQ-ACK consists of one or two bits information.  For TDD HARQ-ACK multiplexing, HARQ-ACK consists of between one and four bits of information and the number of bits is determined as described in section 7.3 of [3].理解：PUSCH上的ACK反馈的Bit在1Bit到4Bit之间（1Bit、2Bit、3Bit和4Bit都可能）。不同的子帧配比下上行反馈的下行数M决定。
+
+When the UE transmits HARQ-ACK bits or rank indicator bits, it shall determine the number of coded symbols  for HARQ-ACK or rank indicator as
+
+where  is the number of HARQ-ACK bits or rank indicator bits,  is the scheduled bandwidth for PUSCH transmission in the current sub-frame for the transport block, expressed as a number of subcarriers in [2], and is the number of SC-FDMA symbols per subframe for initial PUSCH transmission for the same transport block given by , where  is equal to 1 if UE is configured to send PUSCH and SRS in the same subframe for initial transmission or if the PUSCH resource allocation for initial transmission even partially overlaps with the cell-specific SRS subframe and bandwidth configuration defined in section 5.5.3 of [2]. Otherwise  is equal to 0. , , and  are obtained from the initial PDCCH for the same transport block. If there is no initial PDCCH with DCI format 0 for the same transport block, , , and  shall be determined from:
+the most recent semi-persistent scheduling assignment PDCCH, when the initial PUSCH for the same transport block is semi-persistently scheduled, or, 
+the random access response grant for the same transport block, when the PUSCH is initiated by the random access response grant.
+For HARQ-ACK,  and [], where  shall be determined according to [3].
+For rank indication,  and [], where  shall be determined according to [3].
+For HARQ-ACK
+Each positive acknowledgement (ACK) is encoded as a binary ‘1’ and each negative acknowledgement (NACK) is encoded as a binary ‘0’
+If HARQ-ACK consists of 1-bit of information, i.e., , it is first encoded according to Table 5.2.2.6-1.
+If HARQ-ACK consists of 2-bits of information, i.e.,  with  corresponding to HARQ-ACK bit for codeword 0 and  corresponding to that for codeword 1, it is first encoded according to Table 5.2.2.6-2 where .
+Table 5.2.2.6-1: Encoding of 1-bit HARQ-ACK.
+TBL: Qm || Encoded HARQ-ACK
+TBL: 2 || 
+TBL: 4 || 
+TBL: 6 || 
+Qm
+Encoded HARQ-ACK
+2
+
+4
+
+6
+
+
+Table 5.2.2.6-2: Encoding of 2-bit HARQ-ACK.
+TBL: Qm || Encoded HARQ-ACK
+TBL: 2 || 
+TBL: 4 || 
+TBL: 6 || 
+Qm
+Encoded HARQ-ACK
+2
+
+4
+
+6
+
+
+The “x” and “y” in Table 5.2.2.6-1 and 5.2.2.6-2 are placeholders for [2] to scramble the HARQ-ACK bits in a way that maximizes the Euclidean distance of the modulation symbols carrying HARQ-ACK information.
+For the cases with FDD or TDD HARQ-ACK multiplexing when HARQ-ACK consists of one or two bits of information, the bit sequence  is obtained by concatenation of multiple encoded HARQ-ACK blocks where  is the total number of coded bits for all the encoded HARQ-ACK blocks.  The last concatenation of the encoded HARQ-ACK block may be partial so that the total bit sequence length is equal to. 
+For the case with TDD HARQ-ACK bundling, a bit sequence  is obtained by concatenation of multiple encoded HARQ-ACK blocks where  is the total number of coded bits for all the encoded HARQ-ACK blocks.  The last concatenation of the encoded HARQ-ACK block may be partial so that the total bit sequence length is equal to. A scrambling sequence   is then selected from Table 5.2.2.6-A with index , where  is determined as described in section 7.3 of [3]. The bit sequence  is then generated by setting  if HARQ-ACK consists of 1-bit and  if HARQ-ACK consists of 2-bits and then scrambling   as follows
+理解：TDD Bundling下，在ACK Bit小于等于2Bit的情况下，需要加扰，加扰序列是表5.2.2.6-A，在1Bit ACK的情况下，m的值是1，在2Bit ACK的情况下，m的值是3
+Set i ,k to 0
+while  
+if //  place-holder repetition bit
+
+
+else
+if // a place-holder bit
+
+else // coded bit
+
+
+end if
+
+end while
+
+Table 5.2.2.6-A: Scrambling sequence selection for TDD HARQ-ACK bundling.
+TBL:  || 
+TBL: 0 || [1 1 1 1]
+TBL: 1 || [1 0 1 0]
+TBL: 2 || [1 1 0 0]
+TBL: 3 || [1 0 0 1]
+
+
+0
+[1 1 1 1]
+1
+[1 0 1 0]
+2
+[1 1 0 0]
+3
+[1 0 0 1]
+
+For the case that HARQ-ACK consists of more than two bits information, i.e.  with , the bit sequence  is obtained as
+
+理解：大于2Bit的ACK使用reed-muller编码成QAckBit，不是32Bit，注意和CQI编码的区分。
+ where i = 0, 1, 2, …, QACK-1 and the basis sequences Mi,n are defined in Table 5.2.2.6.4-1.
+The vector sequence output of the channel coding for HARQ-ACK information is denoted by , where , and is obtained as follows:
+Set i ,k to 0
+while 
+
+
+
+end while
+For rank indication (RI)
+The corresponding bit widths for RI feedback for PDSCH transmissions are given by Tables 5.2.2.6.1-2, 5.2.2.6.2-3, 5.2.2.6.3-3, 5.2.3.3.1-3 and 5.2.3.3.2-4, which are determined assuming the maximum number of layers according to the corresponding eNodeB antenna configuration and UE category.
+If RI consists of 1-bit of information, i.e., , it is first encoded according to Table 5.2.2.6-3. The  to RI mapping is given by Table 5.2.2.6-5.
+If RI consists of 2-bits of information, i.e.,  with  corresponding to MSB of 2-bit input and  corresponding to LSB, it is first encoded according to Table 5.2.2.6-4 where . The  to RI mapping is given by Table 5.2.2.6-6.
+Table 5.2.2.6-3: Encoding of 1-bit RI.
+TBL: Qm || Encoded RI
+TBL: 2 || 
+TBL: 4 || 
+TBL: 6 || 
+Qm
+Encoded RI
+2
+
+4
+
+6
+
+
+Table 5.2.2.6-4: Encoding of 2-bit RI.
+TBL: Qm || Encoded RI
+TBL: 2 || 
+TBL: 4 || 
+TBL: 6 || 
+Qm
+Encoded RI
+2
+
+4
+
+6
+
+
+Table 5.2.2.6-5:  to RI mapping.
+TBL:  || RI
+TBL: 0 || 1
+TBL: 1 || 2
+
+RI
+0
+1
+1
+2
+
+Table 5.2.2.6-6: , to RI mapping.
+TBL: ,  || RI
+TBL: 0, 0 || 1
+TBL: 0, 1 || 2
+TBL: 1, 0 || 3
+TBL: 1, 1 || 4
+, 
+RI
+0, 0
+1
+0, 1
+2
+1, 0
+3
+1, 1
+4
+
+The “x” and “y” in Table 5.2.2.6-3 and 5.2.2.6-4 are placeholders for [2] to scramble the RI bits in a way that maximizes the Euclidean distance of the modulation symbols carrying rank information.
+The bit sequence  is obtained by concatenation of multiple encoded RI blocks where  is the total number of coded bits for all the encoded RI blocks.  The last concatenation of the encoded RI block may be partial so that the total bit sequence length is equal to. The vector sequence output of the channel coding for rank information is denoted by , where , and is obtained as follows:
+Set i ,k to 0
+while 
+
+
+
+end while
+
+For channel quality control information (CQI and/or PMI denoted as CQI/PMI)
+
+When the UE transmits channel quality control information bits, it shall determine the number of coded symbols  for channel quality information as 
+where  is the number of CQI/PMI bits,  is the number of CRC bits given by ,   and [], where  shall be determined according to [3]. If RI is not transmitted then  .
+, , and  are obtained from the initial PDCCH for the same transport block. If there is no initial PDCCH with DCI format 0 for the same transport block, , , and  shall be determined from:
+the most recent semi-persistent scheduling assignment PDCCH, when the initial PUSCH for the same transport block is semi-persistently scheduled, or, 
+the random access response grant for the same transport block, when the PUSCH is initiated by the random access response grant.
+is the number of SC-FDMA symbols per subframe for initial PUSCH transmission for the same transport block.
+For UL-SCH data information , where   is the scheduled bandwidth for PUSCH transmission in the current sub-frame for the transport block, and  is the number of SC-FDMA symbols in the current PUSCH transmission sub-frame given by , where  is equal to 1 if UE is configured to send PUSCH and SRS in the same subframe for the current subframe or if the PUSCH resource allocation for the current subframe even partially overlaps with the cell-specific SRS subframe and bandwidth configuration defined in section 5.5.3 of [2]. Otherwise  is equal to 0.
+If the payload size is less than or equal to 11 bits, the channel coding of the channel quality information is performed according to section 5.2.2.6.4 with input sequence .
+For payload sizes greater than 11 bits, the CRC attachment, channel coding and rate matching of the channel quality information is performed according to sections 5.1.1, 5.1.3.1 and 5.1.4.2, respectively. The input bit sequence to the CRC attachment is . The output bit sequence of the CRC attachment operation is the input bit sequence to the channel coding operation. The output bit sequence of the channel coding operation is the input bit sequence to the rate matching operation. 
+The output sequence for the channel coding of channel quality information is denoted by .
+5.2.2.6.1Channel quality information formats for wideband CQI reports
+Table 5.2.2.6.1-1 shows the fields and the corresponding bit widths for the channel quality information feedback for wideband reports for PDSCH transmissions associated with transmission mode 4, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting.  in Table 5.2.2.6.1-1 is defined in section 7.2 of [3].
+Table 5.2.2.6.1-1: Fields for channel quality information feedback for wideband CQI reports (transmission mode 4, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  || Rank = 1 || Rank = 2 || Rank = 1 || Rank > 1
+TBL: Wideband CQI codeword 0 || 4 || 4 || 4 || 4
+TBL: Wideband CQI codeword 1 || 0 || 4 || 0 || 4
+TBL: Precoding matrix indicator ||  ||  ||  || 
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+Rank = 1
+Rank = 2
+Rank = 1
+Rank > 1
+Wideband CQI codeword 0
+4
+4
+4
+4
+Wideband CQI codeword 1
+0
+4
+0
+4
+Precoding matrix indicator
+
+
+
+
+Table 5.2.2.6.1-2 shows the fields and the corresponding bit width for the rank indication feedback for wideband CQI reports for PDSCH transmissions associated with transmission mode 4 and transmission mode 8 configured with PMI/RI reporting.
+Table 5.2.2.6.1-2: Fields for rank indication feedback for wideband CQI reports(transmission mode 4 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  ||  || Max 2 layers || Max 4 layers
+TBL: Rank indication || 1 || 1 || 2
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+
+Max 2 layers
+Max 4 layers
+Rank indication
+1
+1
+2
+The channel quality bits in Table 5.2.2.6.1-1 form the bit sequence  with  corresponding to the first bit of the first field in the table,  corresponding to the second bit of the first field in the table, and  corresponding to the last bit in the last field in the table. The field of PMI shall be in the increasing order of the subband index [3]. The first bit of each field corresponds to MSB and the last bit LSB. The RI bits sequence in Table 5.2.2.6.1-2 is encoded according to section 5.2.2.6.
+5.2.2.6.2Channel quality information formats for higher layer configured subband CQI reports
+Table 5.2.2.6.2-1 shows the fields and the corresponding bit width for the channel quality information feedback for higher layer configured report for PDSCH transmissions associated with transmission mode 1, transmission mode 2, transmission mode 3, transmission mode 7 and transmission mode 8 configured without PMI/RI reporting.  in Table 5.2.2.6.2-1 is defined in section 7.2 of [3].
+Table 5.2.2.6.2-1: Fields for channel quality information feedback for higher layer configured subband CQI reports (transmission mode 1, transmission mode 2, transmission mode 3, transmission mode 7 and transmission mode 8 configured without PMI/RI reporting).
+TBL: Field || Bit width
+TBL: Wide-band CQI codeword || 4
+TBL: Subband differential CQI || 
+Field
+Bit width
+Wide-band CQI codeword
+4
+Subband differential CQI
+
+Table 5.2.2.6.2-2 show the fields and the corresponding bit widths for the channel quality information feedback for higher layer configured report for PDSCH transmissions associated with transmission mode 4, transmission mode 5, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting.  in Table 5.2.2.6.2-2 is defined in section 7.2 of [3].
+Table 5.2.2.6.2-2: Fields for channel quality information feedback for higher layer configured subband CQI reports (transmission mode 4, transmission mode 5, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  || Rank = 1 || Rank = 2 || Rank = 1 || Rank > 1
+TBL: Wide-band CQI codeword 0 || 4 || 4 || 4 || 4
+TBL: Subband differential CQI codeword 0 ||  ||  ||  || 
+TBL: Wide-band CQI codeword 1 || 0 || 4 || 0 || 4
+TBL: Subband differential CQI codeword 1 || 0 ||  || 0 || 
+TBL: Precoding matrix indicator || 2 || 1 || 4 || 4
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+Rank = 1
+Rank = 2
+Rank = 1
+Rank > 1
+Wide-band CQI codeword 0
+4
+4
+4
+4
+Subband differential CQI codeword 0
+
+
+
+
+Wide-band CQI codeword 1
+0
+4
+0
+4
+Subband differential CQI codeword 1
+0
+
+0
+
+Precoding matrix indicator
+2
+1
+4
+4
+Table 5.2.2.6.2-3 shows the fields and the corresponding bit width for the rank indication feedback for higher layer configured subband CQI reports for PDSCH transmissions associated with transmission mode 3, transmission mode 4 and transmission mode 8 configured with PMI/RI reporting.
+Table 5.2.2.6.2-3: Fields for rank indication feedback for higher layer configured subband CQI reports(transmission mode 3, transmission mode 4 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  ||  || Max 2 layers || Max 4 layers
+TBL: Rank indication || 1 || 1 || 2
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+
+Max 2 layers
+Max 4 layers
+Rank indication
+1
+1
+2
+The channel quality bits in Table 5.2.2.6.2-1 through Table 5.2.2.6.2-2 form the bit sequence  with  corresponding to the first bit of the first field in each of the tables,  corresponding to the second bit of the first field in each of the tables, and  corresponding to the last bit in the last field in each of the tables. The field of the PMI and subband differential CQI shall be in the increasing order of the subband index [3]. The first bit of each field corresponds to MSB and the last bit LSB. The RI bits sequence in Table 5.2.2.6.2-3 is encoded according to section 5.2.2.6.
+5.2.2.6.3Channel quality information formats for UE selected subband CQI reports
+Table 5.2.2.6.3-1 shows the fields and the corresponding bit widths for the channel quality information feedback for UE selected subband CQI for PDSCH transmissions associated with transmission mode 1, transmission mode 2, transmission mode 3, transmission mode 7 and transmission mode 8 configured without PMI/RI reporting.  in Table 5.2.2.6.3-1 is defined in section 7.2 of [3].
+Table 5.2.2.6.3-1: Fields for channel quality information feedback for UE selected subband CQI reports (transmission mode 1, transmission mode 2, transmission mode 3, transmission mode 7 and transmission mode 8 configured without PMI/RI reporting).
+TBL: Field || Bit width
+TBL: Wide-band CQI codeword || 4
+TBL: Subband differential CQI || 2
+TBL: Position of the M selected subbands || 
+Field
+Bit width
+Wide-band CQI codeword
+4
+Subband differential CQI
+2
+Position of the M selected subbands
+
+Table 5.2.2.6.3-2 shows the fields and the corresponding bit widths for the channel quality information feedback for UE selected subband CQI for PDSCH transmissions associated with transmission mode 4, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting.  in Table 5.2.2.6.3-2 is defined in section 7.2 of [3].
+Table 5.2.2.6.3-2: Fields for channel quality information feedback for UE selected subband CQI reports (transmission mode 4, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  || Rank = 1 || Rank = 2 || Rank = 1 || Rank > 1
+TBL: Wide-band CQI codeword 0 || 4 || 4 || 4 || 4
+TBL: Subband differential CQI codeword 0 || 2 || 2 || 2 || 2
+TBL: Wide-band CQI codeword 1 || 0 || 4 || 0 || 4
+TBL: Subband differential CQI codeword 1 || 0 || 2 || 0 || 2
+TBL: Position of the M selected subbands ||  ||  ||  || 
+TBL: Precoding matrix indicator || 4 || 2 || 8 || 8
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+Rank = 1
+Rank = 2
+Rank = 1
+Rank > 1
+Wide-band CQI codeword 0
+4
+4
+4
+4
+Subband differential CQI codeword 0
+2
+2
+2
+2
+Wide-band CQI codeword 1
+0
+4
+0
+4
+Subband differential CQI codeword 1
+0
+2
+0
+2
+Position of the M selected subbands
+
+
+
+
+Precoding matrix indicator
+4
+2
+8
+8
+
+理解：这里预编码矩阵指示是有2个PMI，一个PMI指示子带集S的，一个是UE选择子带集M的，所以Bit数会是2倍的关系Table 5.2.2.6.3-3 shows the fields and the corresponding bit widths for the rank indication feedback for UE selected subband CQI reports for PDSCH transmissions associated with transmission mode 3, transmission mode 4 and transmission mode 8 configured with PMI/RI reporting.
+Table 5.2.2.6.3-3: Fields for rank indication feedback for UE selected subband CQI reports(transmission mode 3, transmission mode 4 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  ||  || Max 2 layers || Max 4 layers
+TBL: Rank indication || 1 || 1 || 2
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+
+Max 2 layers
+Max 4 layers
+Rank indication
+1
+1
+2
+The channel quality bits in Table 5.2.2.6.3-1 through Table 5.2.2.6.3-2 form the bit sequence  with  corresponding to the first bit of the first field in each of the tables,  corresponding to the second bit of the first field in each of the tables, and  corresponding to the last bit in the last field in each of the tables. The field of PMI shall start with the wideband PMI followed by the PMI for the M selected subbands. The first bit of each field corresponds to MSB and the last bit LSB. The RI bits sequence in Table 5.2.2.6.3-3 is encoded according to section 5.2.2.6.
+5.2.2.6.4Channel coding for CQI/PMI information in PUSCH
+The channel quality bits input to the channel coding block are denoted by   where O is the number of bits. The number of channel quality bits depends on the transmission format. When PUCCH-based reporting format is used, the number of CQI/PMI bits is defined in section 5.2.3.3.1 for wideband reports and in section 5.2.3.3.2 for UE selected subbands reports. When PUSCH-based reporting format is used, the number of CQI/PMI bits is defined in section 5.2.2.6.1 for wideband reports, in section 5.2.2.6.2 for higher layer configured subbands reports and in section 5.2.2.6.3 for UE selected subbands reports. 
+The channel quality information is first coded using a (32, O) block code. The code words of the (32, O) block code are a linear combination of the 11 basis sequences denoted Mi,n and defined in Table 5.2.2.6.4-1.
+Table 5.2.2.6.4-1: Basis sequences for (32, O) code.
+TBL: i || Mi,0 || Mi,1 || Mi,2 || Mi,3 || Mi,4 || Mi,5 || Mi,6 || Mi,7 || Mi,8 || Mi,9 || Mi,10
+TBL: 0 || 1 || 1 || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 1
+TBL: 1 || 1 || 1 || 1 || 0 || 0 || 0 || 0 || 0 || 0 || 1 || 1
+TBL: 2 || 1 || 0 || 0 || 1 || 0 || 0 || 1 || 0 || 1 || 1 || 1
+TBL: 3 || 1 || 0 || 1 || 1 || 0 || 0 || 0 || 0 || 1 || 0 || 1
+TBL: 4 || 1 || 1 || 1 || 1 || 0 || 0 || 0 || 1 || 0 || 0 || 1
+TBL: 5 || 1 || 1 || 0 || 0 || 1 || 0 || 1 || 1 || 1 || 0 || 1
+TBL: 6 || 1 || 0 || 1 || 0 || 1 || 0 || 1 || 0 || 1 || 1 || 1
+TBL: 7 || 1 || 0 || 0 || 1 || 1 || 0 || 0 || 1 || 1 || 0 || 1
+TBL: 8 || 1 || 1 || 0 || 1 || 1 || 0 || 0 || 1 || 0 || 1 || 1
+TBL: 9 || 1 || 0 || 1 || 1 || 1 || 0 || 1 || 0 || 0 || 1 || 1
+TBL: 10 || 1 || 0 || 1 || 0 || 0 || 1 || 1 || 1 || 0 || 1 || 1
+TBL: 11 || 1 || 1 || 1 || 0 || 0 || 1 || 1 || 0 || 1 || 0 || 1
+TBL: 12 || 1 || 0 || 0 || 1 || 0 || 1 || 0 || 1 || 1 || 1 || 1
+TBL: 13 || 1 || 1 || 0 || 1 || 0 || 1 || 0 || 1 || 0 || 1 || 1
+TBL: 14 || 1 || 0 || 0 || 0 || 1 || 1 || 0 || 1 || 0 || 0 || 1
+TBL: 15 || 1 || 1 || 0 || 0 || 1 || 1 || 1 || 1 || 0 || 1 || 1
+TBL: 16 || 1 || 1 || 1 || 0 || 1 || 1 || 1 || 0 || 0 || 1 || 0
+TBL: 17 || 1 || 0 || 0 || 1 || 1 || 1 || 0 || 0 || 1 || 0 || 0
+TBL: 18 || 1 || 1 || 0 || 1 || 1 || 1 || 1 || 1 || 0 || 0 || 0
+TBL: 19 || 1 || 0 || 0 || 0 || 0 || 1 || 1 || 0 || 0 || 0 || 0
+TBL: 20 || 1 || 0 || 1 || 0 || 0 || 0 || 1 || 0 || 0 || 0 || 1
+TBL: 21 || 1 || 1 || 0 || 1 || 0 || 0 || 0 || 0 || 0 || 1 || 1
+TBL: 22 || 1 || 0 || 0 || 0 || 1 || 0 || 0 || 1 || 1 || 0 || 1
+TBL: 23 || 1 || 1 || 1 || 0 || 1 || 0 || 0 || 0 || 1 || 1 || 1
+TBL: 24 || 1 || 1 || 1 || 1 || 1 || 0 || 1 || 1 || 1 || 1 || 0
+TBL: 25 || 1 || 1 || 0 || 0 || 0 || 1 || 1 || 1 || 0 || 0 || 1
+TBL: 26 || 1 || 0 || 1 || 1 || 0 || 1 || 0 || 0 || 1 || 1 || 0
+TBL: 27 || 1 || 1 || 1 || 1 || 0 || 1 || 0 || 1 || 1 || 1 || 0
+TBL: 28 || 1 || 0 || 1 || 0 || 1 || 1 || 1 || 0 || 1 || 0 || 0
+TBL: 29 || 1 || 0 || 1 || 1 || 1 || 1 || 1 || 1 || 1 || 0 || 0
+TBL: 30 || 1 || 1 || 1 || 1 || 1 || 1 || 1 || 1 || 1 || 1 || 1
+TBL: 31 || 1 || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 0
+i
+Mi,0
+Mi,1
+Mi,2
+Mi,3
+Mi,4
+Mi,5
+Mi,6
+Mi,7
+Mi,8
+Mi,9
+Mi,10
+0
+1
+1
+0
+0
+0
+0
+0
+0
+0
+0
+1
+1
+1
+1
+1
+0
+0
+0
+0
+0
+0
+1
+1
+2
+1
+0
+0
+1
+0
+0
+1
+0
+1
+1
+1
+3
+1
+0
+1
+1
+0
+0
+0
+0
+1
+0
+1
+4
+1
+1
+1
+1
+0
+0
+0
+1
+0
+0
+1
+5
+1
+1
+0
+0
+1
+0
+1
+1
+1
+0
+1
+6
+1
+0
+1
+0
+1
+0
+1
+0
+1
+1
+1
+7
+1
+0
+0
+1
+1
+0
+0
+1
+1
+0
+1
+8
+1
+1
+0
+1
+1
+0
+0
+1
+0
+1
+1
+9
+1
+0
+1
+1
+1
+0
+1
+0
+0
+1
+1
+10
+1
+0
+1
+0
+0
+1
+1
+1
+0
+1
+1
+11
+1
+1
+1
+0
+0
+1
+1
+0
+1
+0
+1
+12
+1
+0
+0
+1
+0
+1
+0
+1
+1
+1
+1
+13
+1
+1
+0
+1
+0
+1
+0
+1
+0
+1
+1
+14
+1
+0
+0
+0
+1
+1
+0
+1
+0
+0
+1
+15
+1
+1
+0
+0
+1
+1
+1
+1
+0
+1
+1
+16
+1
+1
+1
+0
+1
+1
+1
+0
+0
+1
+0
+17
+1
+0
+0
+1
+1
+1
+0
+0
+1
+0
+0
+18
+1
+1
+0
+1
+1
+1
+1
+1
+0
+0
+0
+19
+1
+0
+0
+0
+0
+1
+1
+0
+0
+0
+0
+20
+1
+0
+1
+0
+0
+0
+1
+0
+0
+0
+1
+21
+1
+1
+0
+1
+0
+0
+0
+0
+0
+1
+1
+22
+1
+0
+0
+0
+1
+0
+0
+1
+1
+0
+1
+23
+1
+1
+1
+0
+1
+0
+0
+0
+1
+1
+1
+24
+1
+1
+1
+1
+1
+0
+1
+1
+1
+1
+0
+25
+1
+1
+0
+0
+0
+1
+1
+1
+0
+0
+1
+26
+1
+0
+1
+1
+0
+1
+0
+0
+1
+1
+0
+27
+1
+1
+1
+1
+0
+1
+0
+1
+1
+1
+0
+28
+1
+0
+1
+0
+1
+1
+1
+0
+1
+0
+0
+29
+1
+0
+1
+1
+1
+1
+1
+1
+1
+0
+0
+30
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+31
+1
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+
+The encoded CQI/PMI block is denoted by  where  and
+ where i = 0, 1, 2, …, B-1.
+The output bit sequence  is obtained by circular repetition of the encoded CQI/PMI block as follows
+ where i = 0, 1, 2, …, QCQI-1.
+5.2.2.7 Data and control multiplexing
+The control and data multiplexing is performed such that HARQ-ACK information is present on both slots and is mapped to resources around the demodulation reference signals. In addition, the multiplexing ensures that control and data information are mapped to different modulation symbols. 
+The inputs to the data and control multiplexing are the coded bits of the control information denoted by and the coded bits of the UL-SCH denoted by . The output of the data and control multiplexing operation is denoted by , where  and , and where,  are column vectors of length . H is the total number of coded bits allocated for UL-SCH data and CQI/PMI information.
+The control information and the data shall be multiplexed as follows:
+Set i, j, k to 0
+while  -- first place the control information
+
+
+
+end while
+while  -- then place the data
+
+
+
+end while
+5.2.2.8 Channel interleaver
+The channel interleaver described in this section in conjunction with the resource element mapping for PUSCH in [2] implements a time-first mapping of modulation symbols onto the transmit waveform while ensuring that the HARQ-ACK information is present on both slots in the subframe and is mapped to resources around the uplink demodulation reference signals. 
+The input to the channel interleaver are denoted by ,  and . The number of modulation symbols in the subframe is given by .. The output bit sequence from the channel interleaver is derived as follows:
+(1)Assign  to be the number of columns of the matrix. The columns of the matrix are numbered 0, 1, 2,…, from left to right.  is determined according to section 5.2.2.6.
+(2)The number of rows of the matrix is  and we define .
+The rows of the rectangular matrix are numbered 0, 1, 2,…,  from top to bottom.
+(3) If rank information is transmitted in this subframe, the vector sequence  is written onto the columns indicated by Table 5.2.2.8-1, and by sets of Qm rows starting from the last row and moving upwards according to the following pseudocode. 
+Set i, j to 0.
+Set r to 
+while i < 
+
+
+
+
+
+end while
+Where ColumnSet is given in Table 5.2.2.8-1 and indexed left to right from 0 to 3.
+(4) Write the input vector sequence, for k = 0, 1,…, , into the  matrix by sets of Qm rows starting with the vector  in column 0 and rows 0 to and skipping the matrix entries that are already occupied:
+
+The pseudocode is as follows:
+Set i, k to 0.
+            While k <,
+                     if  is not assigned to RI symbols
+                      
+                k = k + 1
+          end if
+                i = i+1
+      end While
+(5) If HARQ-ACK information is transmitted in this subframe, the vector sequence  is written onto the columns indicated by Table 5.2.2.8-2, and by sets of Qm rows starting from the last row and moving upwards according to the following pseudocode. Note that this operation overwrites some of the channel interleaver entries obtained in step (4). 
+Set i, j to 0.
+Set r to 
+while i < 
+
+
+
+
+
+end while
+Where ColumnSet is given in Table 5.2.2.8-2 and indexed left to right from 0 to 3.
+
+(6) The output of the block interleaver is the bit sequence read out column by column from the  matrix. The bits after channel interleaving are denoted by .
+
+Table 5.2.2.8-1: Column set for Insertion of rank information.
+TBL: CP configuration || Column Set
+TBL: Normal || {1, 4, 7, 10}
+TBL: Extended || {0, 3, 5, 8}
+CP configuration
+Column Set
+Normal
+{1, 4, 7, 10}
+Extended
+{0, 3, 5, 8}
+
+Table 5.2.2.8-2: Column set for Insertion of HARQ-ACK information.
+TBL: CP configuration || Column Set
+TBL: Normal || {2, 3, 8, 9}
+TBL: Extended || {1, 2, 6, 7}
+CP configuration
+Column Set
+Normal
+{2, 3, 8, 9}
+Extended
+{1, 2, 6, 7}
+
+5.2.3Uplink control information on PUCCH
+Data arrives to the coding unit in the form of indicators for measurement indication, scheduling request and HARQ acknowledgement. 
+Three forms of channel coding are used, one for the channel quality information CQI/PMI, another for HARQ-ACK (acknowledgement) and scheduling request and another for combination of CQI/PMI and HARQ-ACK. 
+
+Figure 5.2.3-1: Processing for UCI.
+5.2.3.1Channel coding for UCI HARQ-ACK
+The HARQ-ACK bits are received from higher layers. HARQ-ACK consists of 1-bit of information, i.e.,  or 2-bits of information, i.e.,  with  corresponding to HARQ-ACK bit for codeword 0 and  corresponding to that for codeword 1.  Each positive acknowledgement (ACK) is encoded as a binary ‘1’ and each negative acknowledgement (NACK) is encoded as a binary ‘0’. The HARQ-ACK bits are processed according to [2]. 
+5.2.3.2Channel coding for UCI scheduling request
+The scheduling request indication is received from higher layers and is processed according to [2].
+5.2.3.3Channel coding for UCI channel quality information
+The channel quality bits input to the channel coding block are denoted by   where A is the number of bits. The number of channel quality bits depends on the transmission format as indicated in section 5.2.3.3.1 for wideband reports and in section 5.2.3.3.2 for UE-selected subbands reports. 
+The channel quality information is coded using a (20, A) code. The code words of the (20, A) code are a linear combination of the 13 basis sequences denoted Mi,n and defined in Table 5.2.3.3-1.
+Table 5.2.3.3-1: Basis sequences for (20, A) code.
+TBL: i || Mi,0 || Mi,1 || Mi,2 || Mi,3 || Mi,4 || Mi,5 || Mi,6 || Mi,7 || Mi,8 || Mi,9 || Mi,10 || Mi,11 || Mi,12
+TBL: 0 || 1 || 1 || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 0 || 1 || 1 || 0
+TBL: 1 || 1 || 1 || 1 || 0 || 0 || 0 || 0 || 0 || 0 || 1 || 1 || 1 || 0
+TBL: 2 || 1 || 0 || 0 || 1 || 0 || 0 || 1 || 0 || 1 || 1 || 1 || 1 || 1
+TBL: 3 || 1 || 0 || 1 || 1 || 0 || 0 || 0 || 0 || 1 || 0 || 1 || 1 || 1
+TBL: 4 || 1 || 1 || 1 || 1 || 0 || 0 || 0 || 1 || 0 || 0 || 1 || 1 || 1
+TBL: 5 || 1 || 1 || 0 || 0 || 1 || 0 || 1 || 1 || 1 || 0 || 1 || 1 || 1
+TBL: 6 || 1 || 0 || 1 || 0 || 1 || 0 || 1 || 0 || 1 || 1 || 1 || 1 || 1
+TBL: 7 || 1 || 0 || 0 || 1 || 1 || 0 || 0 || 1 || 1 || 0 || 1 || 1 || 1
+TBL: 8 || 1 || 1 || 0 || 1 || 1 || 0 || 0 || 1 || 0 || 1 || 1 || 1 || 1
+TBL: 9 || 1 || 0 || 1 || 1 || 1 || 0 || 1 || 0 || 0 || 1 || 1 || 1 || 1
+TBL: 10 || 1 || 0 || 1 || 0 || 0 || 1 || 1 || 1 || 0 || 1 || 1 || 1 || 1
+TBL: 11 || 1 || 1 || 1 || 0 || 0 || 1 || 1 || 0 || 1 || 0 || 1 || 1 || 1
+TBL: 12 || 1 || 0 || 0 || 1 || 0 || 1 || 0 || 1 || 1 || 1 || 1 || 1 || 1
+TBL: 13 || 1 || 1 || 0 || 1 || 0 || 1 || 0 || 1 || 0 || 1 || 1 || 1 || 1
+TBL: 14 || 1 || 0 || 0 || 0 || 1 || 1 || 0 || 1 || 0 || 0 || 1 || 0 || 1
+TBL: 15 || 1 || 1 || 0 || 0 || 1 || 1 || 1 || 1 || 0 || 1 || 1 || 0 || 1
+TBL: 16 || 1 || 1 || 1 || 0 || 1 || 1 || 1 || 0 || 0 || 1 || 0 || 1 || 1
+TBL: 17 || 1 || 0 || 0 || 1 || 1 || 1 || 0 || 0 || 1 || 0 || 0 || 1 || 1
+TBL: 18 || 1 || 1 || 0 || 1 || 1 || 1 || 1 || 1 || 0 || 0 || 0 || 0 || 0
+TBL: 19 || 1 || 0 || 0 || 0 || 0 || 1 || 1 || 0 || 0 || 0 || 0 || 0 || 0
+i
+Mi,0
+Mi,1
+Mi,2
+Mi,3
+Mi,4
+Mi,5
+Mi,6
+Mi,7
+Mi,8
+Mi,9
+Mi,10
+Mi,11
+Mi,12
+0
+1
+1
+0
+0
+0
+0
+0
+0
+0
+0
+1
+1
+0
+1
+1
+1
+1
+0
+0
+0
+0
+0
+0
+1
+1
+1
+0
+2
+1
+0
+0
+1
+0
+0
+1
+0
+1
+1
+1
+1
+1
+3
+1
+0
+1
+1
+0
+0
+0
+0
+1
+0
+1
+1
+1
+4
+1
+1
+1
+1
+0
+0
+0
+1
+0
+0
+1
+1
+1
+5
+1
+1
+0
+0
+1
+0
+1
+1
+1
+0
+1
+1
+1
+6
+1
+0
+1
+0
+1
+0
+1
+0
+1
+1
+1
+1
+1
+7
+1
+0
+0
+1
+1
+0
+0
+1
+1
+0
+1
+1
+1
+8
+1
+1
+0
+1
+1
+0
+0
+1
+0
+1
+1
+1
+1
+9
+1
+0
+1
+1
+1
+0
+1
+0
+0
+1
+1
+1
+1
+10
+1
+0
+1
+0
+0
+1
+1
+1
+0
+1
+1
+1
+1
+11
+1
+1
+1
+0
+0
+1
+1
+0
+1
+0
+1
+1
+1
+12
+1
+0
+0
+1
+0
+1
+0
+1
+1
+1
+1
+1
+1
+13
+1
+1
+0
+1
+0
+1
+0
+1
+0
+1
+1
+1
+1
+14
+1
+0
+0
+0
+1
+1
+0
+1
+0
+0
+1
+0
+1
+15
+1
+1
+0
+0
+1
+1
+1
+1
+0
+1
+1
+0
+1
+16
+1
+1
+1
+0
+1
+1
+1
+0
+0
+1
+0
+1
+1
+17
+1
+0
+0
+1
+1
+1
+0
+0
+1
+0
+0
+1
+1
+18
+1
+1
+0
+1
+1
+1
+1
+1
+0
+0
+0
+0
+0
+19
+1
+0
+0
+0
+0
+1
+1
+0
+0
+0
+0
+0
+0
+
+After encoding the bits are denoted by  where  and with
+ where i = 0, 1, 2, …, B-1.
+5.2.3.3.1Channel quality information formats for wideband reports
+Table 5.2.3.3.1-1 shows the fields and the corresponding bit widths for the channel quality information feedback for wideband reports for PDSCH transmissions associated with a transmission mode 1, transmission mode 2, transmission mode 3, transmission mode 7 and transmission mode 8 configured without PMI/RI reporting. 
+Table 5.2.3.3.1-1: UCI fields for channel quality information feedback for wideband CQI reports (transmission mode 1, transmission mode 2, transmission mode 3, transmission mode 7 and transmission mode 8 configured without PMI/RI reporting).
+TBL: Field || Bit width
+TBL: Wide-band CQI || 4
+Field
+Bit width
+Wide-band CQI
+4
+Table 5.2.3.3.1-2 shows the fields and the corresponding bit widths for the channel quality and precoding matrix information feedback for wideband reports for PDSCH transmissions associated with transmission mode 4, transmission mode 5, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting. 
+Table 5.2.3.3.1-2: UCI fields for channel quality information feedback for wideband CQI reports (transmission mode 4, transmission mode 5, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  || Rank = 1 || Rank = 2 || Rank = 1 || Rank > 1
+TBL: Wide-band CQI || 4 || 4 || 4 || 4
+TBL: Spatial differential CQI || 0 || 3 || 0 || 3
+TBL: Precoding matrix indicator || 2 || 1 || 4 || 4
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+Rank = 1
+Rank = 2
+Rank = 1
+Rank > 1
+Wide-band CQI
+4
+4
+4
+4
+Spatial differential CQI
+0
+3
+0
+3
+Precoding matrix indicator
+2
+1
+4
+4
+Table 5.2.3.3.1-3 shows the fields and the corresponding bit widths for the rank indication feedback for wideband reports for PDSCH transmissions associated with transmission mode 3, transmission mode 4 and transmission mode 8 configured with PMI/RI reporting.
+Table 5.2.3.3.1-3: UCI fields for rank indication feedback for wideband reports (transmission mode 3, transmission mode 4 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  ||  || Max 2 layers || Max 4 layers
+TBL: Rank indication || 1 || 1 || 2
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+
+Max 2 layers
+Max 4 layers
+Rank indication
+1
+1
+2
+The channel quality bits in Table 5.2.3.3.1-1 through Table 5.2.3.3.1-3 form the bit sequence  with  corresponding to the first bit of the first field in each of the tables,  corresponding to the second bit of the first field in each of the tables, and  corresponding to the last bit in the last field in each of the tables. The first bit of each field corresponds to MSB and the last bit LSB. The RI feedback for one bit is mapped according to Table 5.2.2.6-5 with  replaced by . The RI feedback for two bits is mapped according to Table 5.2.2.6-6 with ,  replaced by .
+5.2.3.3.2Channel quality information formats for UE-selected sub-band reports
+Table 5.2.3.3.2-1 shows the fields and the corresponding bit widths for the sub-band channel quality information feedback for UE-selected sub-band reports for PDSCH transmissions associated with transmission mode 1, transmission mode 2, transmission mode 3, transmission mode 7 and transmission mode 8 configured without PMI/RI reporting. 
+Table 5.2.3.3.2-1: UCI fields for channel quality information feedback for UE-selected sub-band CQI reports (transmission mode 1, transmission mode 2, transmission mode 3, transmission mode 7 and transmission mode 8 configured without PMI/RI reporting).
+TBL: Field || Bit width
+TBL: Sub-band CQI || 4
+TBL: Sub-band label || 1 or 2
+Field
+Bit width
+Sub-band CQI
+4
+Sub-band label
+1 or 2
+Table 5.2.3.3.2-2 shows the fields and the corresponding bit widths for the sub-band channel quality information feedback for UE-selected sub-band reports for PDSCH transmissions associated with transmission mode 4, transmission mode 5, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting.
+Table 5.2.3.3.2-2: UCI fields for channel quality information feedback for UE-selected sub-band reports (transmission mode 4, transmission mode 5, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  || Rank = 1 || Rank = 2 || Rank = 1 || Rank > 1
+TBL: Sub-band CQI || 4 || 4 || 4 || 4
+TBL: Spatial differential CQI || 0 || 3 || 0 || 3
+TBL: Sub-band label || 1 or 2 || 1 or 2 || 1 or 2 || 1 or 2
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+Rank = 1
+Rank = 2
+Rank = 1
+Rank > 1
+Sub-band CQI
+4
+4
+4
+4
+Spatial differential CQI
+0
+3
+0
+3
+Sub-band label
+1 or 2
+1 or 2
+1 or 2
+1 or 2
+Table 5.2.3.3.2-3 shows the fields and the corresponding bit widths for the wide-band channel quality and precoding matrix information feedback for UE-selected sub-band reports for PDSCH transmissions associated with transmission mode 4, transmission mode 5, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting.
+Table 5.2.3.3.2-3: UCI fields for channel quality information feedback for UE-selected sub-band CQI reports (transmission mode 4, transmission mode 5, transmission mode 6 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  || Rank = 1 || Rank = 2 || Rank = 1 || Rank > 1
+TBL: Wide-band CQI || 4 || 4 || 4 || 4
+TBL: Spatial differential CQI || 0 || 3 || 0 || 3
+TBL: Precoding matrix indicator || 2 || 1 || 4 || 4
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+Rank = 1
+Rank = 2
+Rank = 1
+Rank > 1
+Wide-band CQI
+4
+4
+4
+4
+Spatial differential CQI
+0
+3
+0
+3
+Precoding matrix indicator
+2
+1
+4
+4
+Table 5.2.3.3.2-4 shows the fields and the corresponding bit width for the rank indication feedback for UE-selected sub-band reports for PDSCH transmissions associated with transmission mode 3, transmission mode 4 and transmission mode 8 configured with PMI/RI reporting.
+Table 5.2.3.3.2-4: UCI fields for rank indication feedback for UE-selected sub-band reports (transmission mode 3, transmission mode 4 and transmission mode 8 configured with PMI/RI reporting).
+TBL: Field || Bit width
+TBL:  || 2 antenna ports || 4 antenna ports
+TBL:  ||  || Max 2 layers || Max 4 layers
+TBL: Rank indication || 1 || 1 || 2
+Field
+Bit width
+
+2 antenna ports
+4 antenna ports
+
+
+Max 2 layers
+Max 4 layers
+Rank indication
+1
+1
+2
+The channel quality bits in Table 5.2.3.3.2-1 through Table 5.2.3.3.2-4 form the bit sequence  with  corresponding to the first bit of the first field in each of the tables,  corresponding to the second bit of the first field in each of the tables, and  corresponding to the last bit in the last field in each of the tables. The first bit of each field corresponds to MSB and the last bit LSB. The RI feedback for one bit is mapped according to Table 5.2.2.6-5 with  replaced by . The RI feedback for two bits is mapped according to Table 5.2.2.6-6 with ,  replaced by .
+5.2.3.4Channel coding for UCI channel quality information and HARQ-ACK
+This section defines the channel coding scheme for the simultaneous transmission of channel quality information and HARQ-ACK information in a subframe. 
+When normal CP is used for uplink transmission, the channel quality information is coded according to section 5.2.3.3 with input bit sequence  and output bit sequence , where . The HARQ-ACK bits are denoted by  in case one HARQ-ACK bit or  in case two HARQ-ACK bits are reported per subframe. Each positive acknowledgement (NACK) is encoded as a binary ‘1’ and each negative acknowledgement (NAK) is encoded as a binary ‘0’.
+The output of this channel coding block for normal CP is denoted by , where 
+
+In case one HARQ-ACK bit is reported per subframe:
+ and 
+In case two HARQ-ACK bits are reported per subframe:
+ and 
+When extended CP is used for uplink transmission, the channel quality information and the HARQ-ACK bits are jointly coded. The HARQ-ACK bits are denoted by  in case one HARQ-ACK bit or  in case two HARQ-ACK bits are reported per subframe. 
+The channel quality information denoted by  is multiplexed with the HARQ-ACK bits to yield the sequence  as follows
+
+and 
+ and  in case one HARQ-ACK bit is reported per subframe, or
+,  and  in case two HARQ-ACK bits are reported per subframe.
+The sequence  is encoded according to section 5.2.3.3 to yield the output bit sequence  where .
+
+5.2.4Uplink control information on PUSCH without UL-SCH data
+When control data are sent via PUSCH without UL-SCH data, the following coding steps can be identified:
+Channel coding of control information
+Control information mapping
+Channel interleaver
+5.2.4.1 Channel coding of control information
+Control data arrives at the coding unit in the form of channel quality information (CQI and/or PMI), HARQ-ACK and rank indication. Different coding rates for the control information are achieved by allocating different number of coded symbols for its transmission. When the UE transmits HARQ-ACK bits or rank indicator bits, it shall determine the number of coded symbols  for HARQ-ACK or rank indicator as
+
+where  is the number of HARQ-ACK bits, see also section 5.2.2.6 for the two HARQ-ACK feedback modes for TDD as configured by higher layers,  or rank indicator bits,  is the number of CQI bits including CRC bits assuming rank equals to 1,  is the scheduled bandwidth for PUSCH transmission in the current subframe expressed as a number of subcarriers in [2], and is the number of SC-FDMA symbols in the current PUSCH transmission sub-frame given by, where is equal to 1 if UE is configured to send PUSCH and SRS in the same subframe for the current subframe or if the PUSCH resource allocation for the current subframe even partially overlaps with the cell-specific SRS subframe and bandwidth configuration defined in section 5.5.3 of [2]. Otherwise is equal to 0.
+ 
+For HARQ-ACK information  and [], where  shall be determined according to [3].
+For rank indication  and [], where  shall be determined according to [3].
+For CQI and/or PMI information .
+The channel coding and rate matching of the control data is performed according to section 5.2.2.6. The coded output sequence for channel quality information is denoted by , the coded vector sequence output for HARQ-ACK is denoted by  and the coded vector sequence output for rank indication is denoted by .
+5.2.4.2 Control information mapping
+The input are the coded bits of the channel quality information denoted by . The output is denoted by , where  and , and where,  are column vectors of length . H is the total number of coded bits allocated for CQI/PMI information.
+The control information shall be mapped as follows:
+Set j, k to 0
+while 
+
+
+
+end while
+5.2.4.3 Channel interleaver
+The vector sequences ,  and  are channel interleaved according section 5.2.2.8. The bits after channel interleaving are denoted by .
+5.3Downlink transport channels and control information
+5.3.1Broadcast channel
+Figure 5.3.1-1 shows the processing structure for the BCH transport channel. Data arrives to the coding unit in the form of a maximum of one transport block every transmission time interval (TTI) of 40ms. The following coding steps can be identified:
+Add CRC to the transport block
+Channel coding
+Rate matching
+The coding steps for BCH transport channel are shown in the figure below. 
+
+Figure 5.3.1-1: Transport channel processing for BCH.
+5.3.1.1Transport block CRC attachment
+Error detection is provided on BCH transport blocks through a Cyclic Redundancy Check (CRC). 
+The entire transport block is used to calculate the CRC parity bits. Denote the bits in a transport block delivered to layer 1 by, and the parity bits by. A is the size of the transport block and set to 24 bits and L is the number of parity bits. The lowest order information bit a0 is mapped to the most significant bit of the transport block as defined in section 6.1.1 of [5].
+The parity bits are computed and attached to the BCH transport block according to section 5.1.1 setting L to 16 bits. After the attachment, the CRC bits are scrambled according to the eNodeB transmit antenna configuration with the sequence  as indicated in Table 5.3.1.1-1 to form the sequence of bits where
+ for k = 0, 1, 2, …, A-1
+for k = A, A+1, A+2,..., A+15.
+Table 5.3.1.1-1: CRC mask for PBCH.
+TBL: Number of transmit antenna ports at eNodeB || PBCH CRC mask
+TBL: 1 || <0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>
+TBL: 2 || <1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1>
+TBL: 4 || <0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1>
+Number of transmit antenna ports at eNodeB
+PBCH CRC mask
+1
+<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>
+2
+<1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1>
+4
+<0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1>
+
+5.3.1.2Channel coding
+Information bits are delivered to the channel coding block. They are denoted by , where K is the number of bits, and they are tail biting convolutionally encoded according to section 5.1.3.1. 
+After encoding the bits are denoted by, with, and where D is the number of bits on the i-th coded stream, i.e., .
+5.3.1.3 Rate matching
+A tail biting convolutionally coded block is delivered to the rate matching block. This block of coded bits is denoted by, with, and where i is the coded stream index and D is the number of bits in each coded stream. This coded block is rate matched according to section 5.1.4.2.
+After rate matching, the bits are denoted by, where E is the number of rate matched bits as defined in section 6.6.1 of [2].
+5.3.2Downlink shared channel, Paging channel and Multicast channel
+Figure 5.3.2-1 shows the processing structure for each transport block for the DL-SCH, PCH and MCH transport channels. Data arrives to the coding unit in the form of a maximum of two transport blocks every transmission time interval (TTI). The following coding steps can be identified for each transport block:
+Add CRC to the transport block
+Code block segmentation and code block CRC attachment
+Channel coding
+Rate matching
+Code block concatenation
+The coding steps for DL-SCH, PCH and MCH transport channels are shown in the figure below. 
+
+Figure 5.3.2-1: Transport channel processing for DL-SCH, PCH and MCH.
+5.3.2.1Transport block CRC attachment
+Error detection is provided on transport blocks through a Cyclic Redundancy Check (CRC). 
+The entire transport block is used to calculate the CRC parity bits. Denote the bits in a transport block delivered to layer 1 by, and the parity bits by. A is the size of the transport block and L is the number of parity bits. The lowest order information bit a0 is mapped to the most significant bit of the transport block as defined in section 6.1.1 of [5].
+The parity bits are computed and attached to the transport block according to section 5.1.1 setting L to 24 bits and using the generator polynomial gCRC24A(D).
+5.3.2.2Code block segmentation and code block CRC attachment
+The bits input to the code block segmentation are denoted by  where B is the number of bits in the transport block (including CRC). 
+Code block segmentation and code block CRC attachment are performed according to section 5.1.2. 
+The bits after code block segmentation are denoted by, where r is the code block number and Kr is the number of bits for code block number r.
+5.3.2.3Channel coding
+Code blocks are delivered to the channel coding block. They are denoted by , where r is the code block number, and Kr is the number of bits in code block number r. The total number of code blocks is denoted by C and each code block is individually turbo encoded according to section 5.1.3.2. 
+After encoding the bits are denoted by, with, and where  is the number of bits on the i-th coded stream for code block number r, i.e.. 
+5.3.2.4Rate matching
+Turbo coded blocks are delivered to the rate matching block. They are denoted by, with, and where r is the code block number, i is the coded stream index, and  is the number of bits in each coded stream of code block number r. The total number of code blocks is denoted by C and each coded block is individually rate matched according to section 5.1.4.1.
+After rate matching, the bits are denoted by, where r is the coded block number, and where  is the number of rate matched bits for code block number r. 
+5.3.2.5Code block concatenation
+The bits input to the code block concatenation block are denoted by  for  and where  is the number of rate matched bits for the r-th code block. 
+Code block concatenation is performed according to section 5.1.5. 
+The bits after code block concatenation are denoted by, where G is the total number of coded bits for transmission. This sequence of coded bits corresponding to one transport block after code block concatenation is referred to as one codeword in section 6.3.1 of [2]. In case of multiple transport blocks per TTI, the transport block to codeword mapping is specified according to section 5.3.3.1.5, 5.3.3.1.5A or 5.3.3.1.5B, depending on the DCI Format.
+
+5.3.3Downlink control information
+A DCI transports downlink or uplink scheduling information, requests for aperiodic CQI reports, notifications of MCCH change [6] or uplink power control commands for one RNTI.  The RNTI is implicitly encoded in the CRC.
+Figure 5.3.3-1 shows the processing structure for the DCI. The following coding steps can be identified:
+Information element multiplexing
+CRC attachment
+Channel coding
+Rate matching
+The coding steps for DCI are shown in the figure below. 
+
+Figure 5.3.3-1: Processing for DCI.
+5.3.3.1DCI formats
+The fields defined in the DCI formats below are mapped to the information bits a0 to aA-1 as follows.
+Each field is mapped in the order in which it appears in the description, including the zero-padding bit(s), if any, with the first field mapped to the lowest order information bit a0 and each successive field mapped to higher order information bits. The most significant bit of each field is mapped to the lowest order information bit for that field, e.g. the most significant bit of the first field is mapped to a0.
+Note: DCI formats 0, 1A, 3, and 3A shall have the same payload size.
+5.3.3.1.1Format 0
+DCI format 0 is used for the scheduling of PUSCH. 
+The following information is transmitted by means of the DCI format 0:
+- Flag for format0/format1A differentiation – 1 bit, where value 0 indicates format 0 and value 1 indicates format 1A
+- Frequency hopping flag – 1 bit as defined in section 8.4 of [3]
+- Resource block assignment and hopping resource allocation –  bits
+- For PUSCH hopping:
+- NUL_hop MSB bits are used to obtain the value of  as indicated in section 8.4 of [3] 
+-  bits provide the resource allocation of the first slot in the UL subframe
+- For non-hopping PUSCH:
+-  bits provide the resource allocation in the UL subframe as defined in section 8.1 of [3]
+- Modulation and coding scheme and redundancy version – 5 bits as defined in section 8.6 of [3]
+- New data indicator – 1 bit
+- TPC command for scheduled PUSCH – 2 bits as defined in section 5.1.1.1 of [3]
+- Cyclic shift for DM RS – 3 bits as defined in section 5.5.2.1.1 of [2]
+- UL index – 2 bits as defined in sections 5.1.1.1, 7.2.1, 8 and 8.4 of [3] (this field is present only for TDD operation with uplink-downlink configuration 0)
+-  Downlink Assignment Index (DAI) – 2 bits as defined in section 7.3 of [3] (this field is present only for TDD operation with uplink-downlink configurations 1-6) 理解：用于确定
+- CQI request – 1 bit as defined in section 7.2.1 of [3]理解：周期或非周期的CQI
+If the number of information bits in format 0 is less than the payload size of for format 1A (including any padding bits appended to format 1A), zeros shall be appended to format 0 until the payload size equals that of format 1A.
+5.3.3.1.2Format 1
+DCI format 1 is used for the scheduling of one PDSCH codeword. 
+The following information is transmitted by means of the DCI format 1:
+- Resource allocation header (resource allocation type 0 / type 1) – 1 bit as defined in section 7.1.6 of [3]
+      If downlink bandwidth is less than or equal to 10 PRBs, there is no resource allocation header and resource allocation type 0 is assumed. 
+- Resource block assignment:
+- For resource allocation type 0 as defined in section 7.1.6.1 of [3]: 
+- bits provide the resource allocation 
+- For resource allocation type 1 as defined in section 7.1.6.2 of [3]: 
+-  bits of this field are used as a header specific to this resource allocation type to indicate the selected resource blocks subset
+- 1 bit indicates a shift of the resource allocation span
+-  bits provide the resource allocation
+where the value of P depends on the number of DL resource blocks as indicated in section 7.1. 6 of [3]
+- Modulation and coding scheme – 5 bits as defined in section 7.1.7 of [3]
+- HARQ process number – 3 bits (FDD), 4 bits (TDD)
+- New data indicator – 1 bit
+- Redundancy version – 2 bits
+- TPC command for PUCCH – 2 bits as defined in section 5.1.2.1 of [3]
+- Downlink Assignment Index (this field is present in TDD for all the uplink –downlink configurations and only applies to TDD operation with uplink –downlink configuration 1-6. This field is not present in FDD) – 2 bits
+If the number of information bits in format 1 is equal to that for format 0/1A, one bit of value zero shall be appended to format 1.
+If the number of information bits in format 1 belongs to one of the sizes in Table 5.3.3.1.2-1, one or more zero bit(s) shall be appended to format 1 until the payload size of format 1 does not belong to one of the sizes in Table 5.3.3.1.2-1 and is not equal to that of format 0/1A.
+Table 5.3.3.1.2-1: Ambiguous Sizes of Information Bits.
+TBL: {12, 14, 16 ,20, 24, 26, 32, 40, 44, 56}
+{12, 14, 16 ,20, 24, 26, 32, 40, 44, 56}
+
+5.3.3.1.3Format 1A
+DCI format 1A is used for the compact scheduling of one PDSCH codeword and random access procedure initiated by a PDCCH order. 
+The following information is transmitted by means of the DCI format 1A:
+- Flag for format0/format1A differentiation – 1 bit, where value 0 indicates format 0 and value 1 indicates format 1A
+Format 1A is used for random access procedure initiated by a PDCCH order only if format 1A CRC is scrambled with C-RNTI and all the remaining fields are set as follows:
+- Localized/Distributed VRB assignment flag – 1 bit is set to ‘0’
+- Resource block assignment – bits, where all bits shall be set to 1
+- Preamble Index – 6 bits
+- PRACH Mask Index – 4 bits, [5]
+- All the remaining bits in format 1A for compact scheduling assignment of one PDSCH codeword are set to zero
+Otherwise, 
+- Localized/Distributed VRB assignment flag – 1 bit as defined in 7.1.6.3 of [3]
+- Resource block assignment – bits as defined in section 7.1.6.3 of [3]:
+- For localized VRB: 
+bits provide the resource allocation
+- For distributed VRB: 
+- If  or if the format 1A CRC is scrambled by RA-RNTI, P-RNTI, or SI-RNTI
+- bits provide the resource allocation 
+- Else
+- 1 bit, the MSB indicates the gap value, where value 0 indicates  and value 1 indicates 
+-  bits provide the resource allocation, 
+where  is defined in [2].
+- Modulation and coding scheme – 5bits as defined in section 7.1.7 of [3]
+- HARQ process number – 3 bits (FDD) , 4 bits (TDD)
+- New data indicator – 1 bit
+- If the format 1A CRC is scrambled by RA-RNTI, P-RNTI, or SI-RNTI:
+- If  and Localized/Distributed VRB assignment flag is set to 1
+- the new data indicator bit indicates the gap value, where value 0 indicates  and value 1 indicates .
+- Else the new data indicator bit is reserved.
+- Else
+- The new data indicator bit as defined in [5]
+
+- Redundancy version – 2 bits
+- TPC command for PUCCH – 2 bits as defined in section 5.1.2.1 of [3]
+- If the format 1A CRC is scrambled by RA-RNTI, P-RNTI, or SI-RNTI:
+- The most significant bit of the TPC command is reserved.
+- The least significant bit of the TPC command indicates column of the TBS table defined of [3].
+ - If least significant bit is 0 then =  2  else= 3.
+理解：如果DCI CRC是用RA-RNTI、P-RNTI或SI-RNTI进行加扰的，并且使用Format1A的情况，TPC command for PUCCH域中的2个Bit用于确定调度的Rb个数，根据RB个数确定TB块大小。DCI1A的Rb大小只有2个或3个。
+- Else
+- The two bits including the most significant bit indicates the TPC command
+
+- Downlink Assignment Index (this field is present in TDD for all the uplink –downlink configurations and only applies to TDD operation with uplink –downlink configuration 1-6. This field is not present in FDD) – 2 bits
+If the number of information bits in format 1A is less than that of format 0, zeros shall be appended to format 1A until the payload size equals that of format 0. 
+If the number of information bits in format 1A belongs to one of the sizes in Table 5.3.3.1.2-1, one zero bit shall be appended to format 1A.
+When the format 1A CRC is scrambled with a RA-RNTI, P-RNTI, or SI-RNTI then the following fields among the fields above are reserved:
+- HARQ process number
+- Downlink Assignment Index (used for TDD only and is not present in FDD)
+
+5.3.3.1.3AFormat 1B
+DCI format 1B is used for the compact scheduling of one PDSCH codeword with precoding information. 
+The following information is transmitted by means of the DCI format 1B:
+- Localized/Distributed VRB assignment flag – 1 bit as defined in section 7.1.6.3 of [3]
+- Resource block assignment – bits as defined in section 7.1.6.3 of [3]
+- For localized VRB: 
+bits provide the resource allocation
+- For distributed VRB: 
+- For 
+- bits provide the resource allocation 
+- For  
+- 1 bit, the MSB indicates the gap value, where value 0 indicates  and value 1 indicates 
+-  bits provide the resource allocation 
+- Modulation and coding scheme – 5bits as defined in section 7.1.7 of [3]
+- HARQ process number – 3 bits (FDD) , 4 bits (TDD)
+- New data indicator – 1 bit
+- Redundancy version – 2 bits
+- TPC command for PUCCH – 2 bits as defined in section 5.1.2.1 of [3]
+- Downlink Assignment Index (this field is present in TDD for all the uplink –downlink configurations and only applies to TDD operation with uplink –downlink configuration 1-6. This field is not present in FDD) – 2 bits
+- TPMI information for precoding – number of bits as specified in Table 5.3.3.1.3A-1
+TPMI information indicates which codebook index is used in Table 6.3.4.2.3-1 or Table 6.3.4.2.3-2 of [2] corresponding to the single-layer transmission.
+- PMI confirmation for precoding – 1 bit as specified in Table 5.3.3.1.3A-2
+理解：预编码指示确定，0表示根据TPMI信息域指示的TPMI进行预编码。1表示根据PUSCH上最新的PMI报告进行预编码
+Table 5.3.3.1.3A-1: Number of bits for TPMI information.
+TBL: Number of antenna ports at eNodeB || Number of bits
+TBL: 2 || 2
+TBL: 4 || 4
+Number of antenna ports at eNodeB
+Number of bits
+2
+2
+4
+4
+
+Table 5.3.3.1.3A-2: Content of PMI confirmation.
+TBL: Bit field mapped to index || Message
+TBL: 0 || Precoding according to the indicated TPMI in the TPMI information field
+TBL: 1 || Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+Bit field mapped to index
+Message
+0
+Precoding according to the indicated TPMI in the TPMI information field
+1
+Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+
+If the number of information bits in format 1B belongs to one of the sizes in Table 5.3.3.1.2-1, one zero bit shall be appended to format 1B.
+5.3.3.1.4Format 1C
+DCI format 1C is used for very compact scheduling of one PDSCH codeword and notifying MCCH change [6]. 
+The following information is transmitted by means of the DCI format 1C:
+If the format 1C is used for very compact scheduling of one PDSCH codeword
+- 1 bit indicates the gap value, where value 0 indicates  and value 1 indicates 
+- For, there is no bit for gap indication
+- Resource block assignment – bits as defined in 7.1.6.3 of [3] where  is defined in [2] and  is defined in [3]
+- Modulation and coding scheme – 5 bits as defined in section 7.1.7 of [3]
+Else
+- Information for MCCH change notification – 8 bits as defined in section 5.8.1.3 of [6]
+- Reserved information bits are added until the size is equal to that of format 1C used for very compact scheduling of one PDSCH codeword
+5.3.3.1.4AFormat 1D
+DCI format 1D is used for the compact scheduling of one PDSCH codeword with precoding and power offset information. 
+The following information is transmitted by means of the DCI format 1D:
+- Localized/Distributed VRB assignment flag – 1 bit as defined in section 7.1.6.3 of [3]
+- Resource block assignment – bits as defined in section 7.1.6.3 of [3]:
+- For localized VRB: 
+bits provide the resource allocation
+- For distributed VRB: 
+- For 
+- bits provide the resource allocation 
+- For  
+- 1 bit, the MSB indicates the gap value, where value 0 indicates  and value 1 indicates 
+-  bits provide the resource allocation 
+- Modulation and coding scheme – 5bits as defined in section 7.1.7 of [3]
+- HARQ process number – 3 bits (FDD), 4 bits (TDD)
+- New data indicator – 1 bit
+- Redundancy version – 2 bits
+- TPC command for PUCCH – 2 bits as defined in section 5.1.2.1 of [3]
+- Downlink Assignment Index (this field is present in TDD for all the uplink –downlink configurations and only applies to TDD operation with uplink –downlink configuration 1-6. This field is not present in FDD) – 2 bits
+- TPMI information for precoding – number of bits as specified in Table 5.3.3.1.4A-1
+TPMI information indicates which codebook index is used in Table 6.3.4.2.3-1 or Table 6.3.4.2.3-2 of [2] corresponding to the single-layer transmission.
+- Downlink power offset – 1 bit as defined in section 7.1.5 of [3]
+Table 5.3.3.1.4A-1: Number of bits for TPMI information.
+TBL: Number of antenna ports at eNodeB || Number of bits
+TBL: 2 || 2
+TBL: 4 || 4
+Number of antenna ports at eNodeB
+Number of bits
+2
+2
+4
+4
+
+If the number of information bits in format 1D belongs to one of the sizes in Table 5.3.3.1.2-1, one zero bit shall be appended to format 1D.
+5.3.3.1.5Format 2
+The following information is transmitted by means of the DCI format 2:
+- Resource allocation header (resource allocation type 0 / type 1) – 1 bit as defined in section 7.1.6 of [3]
+If downlink bandwidth is less than or equal to 10 PRBs, there is no resource allocation header and resource allocation type 0 is assumed.
+- Resource block assignment:
+- For resource allocation type 0 defined in section 7.1.6.1 of [3]: 
+- bits provide the resource allocation 
+- For resource allocation type 1 as defined in section 7.1.6.2 of [3]: 
+-  bits of this field are used as a header specific to this resource allocation type to indicate the selected resource blocks subset 
+- 1 bit indicates a shift of the resource allocation span
+-  bits provide the resource allocation
+where the value of P depends on the number of DL resource blocks as indicated in section 7.1.6.1 of [3]
+- TPC command for PUCCH – 2 bits as defined in section 5.1.2.1 of [3]
+- Downlink Assignment Index (this field is present in TDD for all the uplink –downlink configurations and only applies to TDD operation with uplink –downlink configuration 1-6. This field is not present in FDD) – 2 bits
+- HARQ process number - 3 bits (FDD), 4 bits (TDD)
+- Transport block to codeword swap flag – 1 bit
+In addition, for transport block 1: 
+- Modulation and coding scheme – 5 bits as defined in section 7.1.7 of [3]
+- New data indicator – 1 bit
+- Redundancy version – 2 bits
+In addition, for transport block 2:
+- Modulation and coding scheme – 5 bits as defined in section 7.1.7 of [3]
+- New data indicator – 1 bit
+- Redundancy version – 2 bits
+Precoding information – number of bits as specified in Table 5.3.3.1.5-3
+If both transport blocks are enabled, the transport block to codeword mapping is specified according to Table 5.3.3.1.51.
+In case one of the transport blocks is disabled as specified in section 7.1.7.2 of [3], the transport block to codeword swap flag is reserved and the transport block to codeword mapping is specified according to Table 5.3.3.1.52.
+
+Table 5.3.3.1.5-1: Transport block to codeword mapping(two transport blocks enabled).
+TBL: transport blockto codewordswap flag value || codeword 0(enabled) || codeword 1(enabled)
+TBL: 0 || transport block 1 || transport block 2
+TBL: 1 || transport block 2 || transport block 1
+transport blockto codewordswap flag value
+codeword 0(enabled)
+codeword 1(enabled)
+0
+transport block 1
+transport block 2
+1
+transport block 2
+transport block 1
+
+Table 5.3.3.1.5-2: Transport block to codeword mapping(one transport block enabled).
+TBL: transport block 1 || transport block 2 || codeword 0(enabled) || codeword 1(disabled)
+TBL: enabled || disabled || transport block 1 || -
+TBL: disabled || enabled || transport block 2 || -
+transport block 1
+transport block 2
+codeword 0(enabled)
+codeword 1(disabled)
+enabled
+disabled
+transport block 1
+-
+disabled
+enabled
+transport block 2
+-
+
+The interpretation of the precoding information field depends on the number of enabled codewords according to Table 5.3.3.1.5-4 and Table 5.3.3.1.5-5.  Note that TPMI indicates which codebook index is used in Table 6.3.4.2.3-1 or Table 6.3.4.2.3-2 of [2]. For a single enabled codeword, indices 18 to 34 inclusive in Table 5.3.3.1.5-5 are only supported for retransmission of the corresponding transport block if that transport block has previously been transmitted using two layers with closed-loop spatial multiplexing.
+If the number of information bits in format 2 belongs to one of the sizes in Table 5.3.3.1.2-1, one zero bit shall be appended to format 2.
+Some entries in Table 5.3.3.1.5-4 and Table 5.3.3.1.5-5 are used for indicating that the eNodeB has applied precoding according to PMI(s) reported by the UE. In these cases the precoding for the corresponding RB(s) in subframe n is according to the latest PMI(s) reported by the UE on PUSCH, not coming from PUCCH, on or before subframe n-4.
+
+Table 5.3.3.1.5-3: Number of bits for precoding information.
+TBL: Number of antenna ports at eNodeB || Number of bits for precoding information
+TBL: 2 || 3
+TBL: 4 || 6
+Number of antenna ports at eNodeB
+Number of bits for precoding information
+2
+3
+4
+6
+
+Table 5.3.3.1.5-4: Content of precoding information field for 2 antenna ports.
+TBL: One codeword:  | Codeword 0 enabled,  | Codeword 1 disabled || Two codewords:  | Codeword 0 enabled,  | Codeword 1 enabled
+TBL: Bit field mapped to index || Message || Bit field mapped to index || Message
+TBL: 0 || 2 layers: Transmit diversity || 0 || 2 layers: Precoding corresponding to precoder matrix 
+TBL: 1 || 1 layer: Precoding corresponding to precoding vector  || 1 || 2 layers: Precoding corresponding to precoder matrix 
+TBL: 2 || 1 layer: Precoding corresponding to precoder vector  || 2 || 2 layers: Precoding according to the latest PMI report on PUSCH, using the precoder(s) indicated by the reported PMI(s)
+TBL: 3 || 1 layer: Precoding corresponding to precoder vector  || 3 || reserved
+TBL: 4 || 1 layer: Precoding corresponding to precoder vector  || 4 || reserved
+TBL: 5 || 1 layer:  | Precoding according to the latest PMI report on PUSCH, using the precoder(s) indicated by the reported PMI(s), | if RI=2 was reported, using 1st column multiplied by of all precoders implied by the reported PMI(s) || 5 || reserved
+TBL: 6 || 1 layer: | Precoding according to the latest PMI report on PUSCH, using the precoder(s) indicated by the reported PMI(s), | if RI=2 was reported, using 2nd column multiplied by of all precoders implied by the reported PMI(s) || 6 || reserved
+TBL: 7 || reserved || 7 || reserved
+One codeword: 
+Codeword 0 enabled, 
+Codeword 1 disabled
+Two codewords: 
+Codeword 0 enabled, 
+Codeword 1 enabled
+Bit field mapped to index
+Message
+Bit field mapped to index
+Message
+0
+2 layers: Transmit diversity
+0
+2 layers: Precoding corresponding to precoder matrix 
+1
+1 layer: Precoding corresponding to precoding vector 
+1
+2 layers: Precoding corresponding to precoder matrix 
+2
+1 layer: Precoding corresponding to precoder vector 
+2
+2 layers: Precoding according to the latest PMI report on PUSCH, using the precoder(s) indicated by the reported PMI(s)
+
+3
+1 layer: Precoding corresponding to precoder vector 
+3
+reserved
+4
+1 layer: Precoding corresponding to precoder vector 
+4
+reserved
+5
+1 layer: 
+Precoding according to the latest PMI report on PUSCH, using the precoder(s) indicated by the reported PMI(s),
+if RI=2 was reported, using 1st column multiplied by of all precoders implied by the reported PMI(s)
+5
+reserved
+6
+1 layer:
+Precoding according to the latest PMI report on PUSCH, using the precoder(s) indicated by the reported PMI(s),
+if RI=2 was reported, using 2nd column multiplied by of all precoders implied by the reported PMI(s)
+6
+reserved
+7
+reserved
+7
+reserved
+
+
+Table 5.3.3.1.5-5: Content of precoding information field for 4 antenna ports.
+TBL: One codeword:  | Codeword 0 enabled,  | Codeword 1 disabled || Two codewords:  | Codeword 0 enabled,  | Codeword 1 enabled
+TBL: Bit field mapped to index || Message || Bit field mapped to index || Message
+TBL: 0 || 4 layers: Transmit diversity || 0 || 2 layers: TPMI=0
+TBL: 1 || 1 layer: TPMI=0 || 1 || 2 layers: TPMI=1
+TBL: 2 || 1 layer: TPMI=1 ||  || 
+TBL:  ||  || 15 || 2 layers: TPMI=15
+TBL: 16 || 1 layer: TPMI=15 || 16 || 2 layers: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+TBL: 17 || 1 layer: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s) || 17 || 3 layers: TPMI=0
+TBL: 18 || 2 layers: TPMI=0 || 18 || 3 layers: TPMI=1
+TBL: 19 || 2 layers: TPMI=1 ||  || 
+TBL:  ||  || 32 || 3 layers: TPMI=15
+TBL: 33 || 2 layers: TPMI=15 || 33 ||  3 layers: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+TBL: 34 || 2 layers: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s) || 34 || 4 layers: TPMI=0
+TBL: 35 – 63 || reserved || 35 || 4 layers: TPMI=1
+TBL:  ||  ||  || 
+TBL:  ||  || 49 || 4 layers: TPMI=15
+TBL:  ||  || 50 || 4 layers: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+TBL:  ||  || 51 – 63 || Reserved
+One codeword: 
+Codeword 0 enabled, 
+Codeword 1 disabled
+Two codewords: 
+Codeword 0 enabled, 
+Codeword 1 enabled
+Bit field mapped to index
+Message
+Bit field mapped to index
+Message
+0
+4 layers: Transmit diversity
+0
+2 layers: TPMI=0
+1
+1 layer: TPMI=0
+1
+2 layers: TPMI=1
+2
+1 layer: TPMI=1
+
+
+
+
+15
+2 layers: TPMI=15
+16
+1 layer: TPMI=15
+16
+2 layers: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+17
+1 layer: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+17
+3 layers: TPMI=0
+18
+2 layers: TPMI=0
+18
+3 layers: TPMI=1
+19
+2 layers: TPMI=1
+
+
+
+
+32
+3 layers: TPMI=15
+33
+2 layers: TPMI=15
+33
+ 3 layers: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+34
+2 layers: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+34
+4 layers: TPMI=0
+35 – 63
+reserved
+35
+4 layers: TPMI=1
+
+
+
+
+
+
+49
+4 layers: TPMI=15
+
+
+50
+4 layers: Precoding according to the latest PMI report on PUSCH using the precoder(s) indicated by the reported PMI(s)
+
+
+51 – 63
+Reserved
+
+5.3.3.1.5AFormat 2A
+The following information is transmitted by means of the DCI format 2A:
+- Resource allocation header (resource allocation type 0 / type 1) – 1 bit as defined in section 7.1.6 of [3]
+If downlink bandwidth is less than or equal to 10 PRBs, there is no resource allocation header and resource allocation type 0 is assumed.
+- Resource block assignment:
+- For resource allocation type 0 as defined in section 7.1.6.1 of [3] 
+- bits provide the resource allocation 
+- For resource allocation type 1 as defined in section 7.1.6.2 of [3] 
+-  bits of this field are used as a header specific to this resource allocation type to indicate the selected resource blocks subset 
+- 1 bit indicates a shift of the resource allocation span
+-  bits provide the resource allocation
+where the value of P depends on the number of DL resource blocks as indicated in section 7.1.6.1 of [3]
+- TPC command for PUCCH – 2 bits as defined in section 5.1.2.1 of [3]
+- Downlink Assignment Index (this field is present in TDD for all the uplink –downlink configurations and only applies to TDD operation with uplink –downlink configuration 1-6. This field is not present in FDD) – 2 bits
+- HARQ process number - 3 bits (FDD), 4 bits (TDD)
+- Transport block to codeword swap flag – 1 bit
+In addition, for transport block 1: 
+- Modulation and coding scheme – 5 bits as defined in section 7.1.7 of [3]
+- New data indicator – 1 bit
+- Redundancy version – 2 bits
+In addition, for transport block 2:
+- Modulation and coding scheme – 5 bits as defined in section 7.1.7 of [3]
+- New data indicator – 1 bit
+- Redundancy version – 2 bits
+Precoding information – number of bits as specified in Table 5.3.3.1.5A-1
+
+If both transport blocks are enabled, the transport block to codeword mapping is specified according to Table 5.3.3.1.51.
+In case one of the transport blocks is disabled, the transport block to codeword swap flag is reserved and the transport block to codeword mapping is specified according to Table 5.3.3.1.52.
+The precoding information field is defined according to Table 5.3.3.1.5A2. For a single enabled codeword, index 1 in Table 5.3.3.1.5A-2 is only supported for retransmission of the corresponding transport block if that transport block has previously been transmitted using two layers with large delay CDD.
+For transmission with 2 antenna ports, the precoding information field is not present. The number of transmission layers is equal to 2 if both codewords are enabled; transmit diversity is used if codeword 0 is enabled while codeword 1 is disabled. 
+If the number of information bits in format 2A belongs to one of the sizes in Table 5.3.3.1.2-1, one zero bit shall be appended to format 2A.
+Table 5.3.3.1.5A-1: Number of bits for precoding information.
+TBL: Number of antenna ports at eNodeB || Number of bits for precoding information
+TBL: 2 || 0
+TBL: 4 || 2
+Number of antenna ports at eNodeB
+Number of bits for precoding information
+2
+0
+4
+2
+
+Table 5.3.3.1.5A-2: Content of precoding information field for 4 antenna ports.
+TBL: One codeword:  | Codeword 0 enabled,  | Codeword 1 disabled || Two codewords:  | Codeword 0 enabled,  | Codeword 1 enabled
+TBL: Bit field mapped to index || Message || Bit field mapped to index || Message
+TBL: 0 || 4 layers: Transmit diversity || 0 || 2 layers: precoder cycling with large delay CDD
+TBL: 1 || 2 layers: precoder cycling with large delay CDD || 1 || 3 layers: precoder cycling with large delay CDD
+TBL: 2 || reserved || 2 || 4 layers: precoder cycling with large delay CDD
+TBL: 3 || reserved || 3 || reserved
+One codeword: 
+Codeword 0 enabled, 
+Codeword 1 disabled
+Two codewords: 
+Codeword 0 enabled, 
+Codeword 1 enabled
+Bit field mapped to index
+Message
+Bit field mapped to index
+Message
+0
+4 layers: Transmit diversity
+0
+2 layers: precoder cycling with large delay CDD
+1
+2 layers: precoder cycling with large delay CDD
+1
+3 layers: precoder cycling with large delay CDD
+2
+reserved
+2
+4 layers: precoder cycling with large delay CDD
+3
+reserved
+3
+reserved
+
+5.3.3.1.5BFormat 2B
+The following information is transmitted by means of the DCI format 2B:
+- Resource allocation header (resource allocation type 0 / type 1) – 1 bit as defined in section 7.1.6 of [3]
+If downlink bandwidth is less than or equal to 10 PRBs, there is no resource allocation header and resource allocation type 0 is assumed.
+- Resource block assignment:
+- For resource allocation type 0 as defined in section 7.1.6.1 of [3] 
+- bits provide the resource allocation 
+- For resource allocation type 1 as defined in section 7.1.6.2 of [3] 
+-  bits of this field are used as a header specific to this resource allocation type to indicate the selected resource blocks subset 
+- 1 bit indicates a shift of the resource allocation span
+-  bits provide the resource allocation
+where the value of P depends on the number of DL resource blocks as indicated in section [7.1.6.1] of [3]
+- TPC command for PUCCH – 2 bits as defined in section 5.1.2.1 of [3]
+- Downlink Assignment Index (this field is present in TDD for all the uplink –downlink configurations and only applies to TDD operation with uplink –downlink configuration 1-6. This field is not present in FDD) – 2 bits
+- HARQ process number - 3 bits (FDD), 4 bits (TDD)
+- Scrambling identity– 1 bit as defined in section 6.10.3.1 of [2]
+理解：指示UE专用参考信号的加扰序列初始值的产生。
+In addition, for transport block 1: 
+- Modulation and coding scheme – 5 bits as defined in section 7.1.7 of [3]
+- New data indicator – 1 bit
+- Redundancy version – 2 bits
+In addition, for transport block 2:
+- Modulation and coding scheme – 5 bits as defined in section 7.1.7 of [3]
+- New data indicator – 1 bit
+- Redundancy version – 2 bits
+If both transport blocks are enabled, the number of layers equals two; transport block 1 is mapped to codeword 0; and transport block 2 is mapped to codeword 1. Antenna ports 7 and 8 are used for spatial multiplexing.
+In case one of the transport blocks is disabled, the number of layers equals one; the transport block to codeword mapping is specified according to Table 5.3.3.1.52; and the antenna port for single-antenna port transmission is according to Table 5.3.3.1.5B-1.
+Table 5.3.3.1.5B-1: Antenna port for single-antenna port transmission (one transport block disabled).
+TBL: New data indicator of the disabled transport block || Antenna port 
+TBL: 0 || 7
+TBL: 1 || 8
+New data indicator of the disabled transport block
+Antenna port 
+0
+7
+1
+8
+
+If the number of information bits in format 2B belongs to one of the sizes in Table 5.3.3.1.2-1, one zero bit shall be appended to format 2B.
+5.3.3.1.6Format 3
+DCI format 3 is used for the transmission of TPC commands for PUCCH and PUSCH with 2-bit power adjustments. 
+The following information is transmitted by means of the DCI format 3:
+- TPC command number 1, TPC command number 2,…, TPC command number N
+where , and where  is equal to the payload size of format 0 before CRC attachment, including any padding bits appended to format 0. The parameter tpc-Index provided by higher layers determines the index to the TPC command for a given UE.
+If , a bit of value zero shall be appended to format 3.
+理解：DCI3为PUCCH和PUSCH的每个TPC command为2Bit指示。DCI3A为PUCCH和PUSCH的每个TPC command为1Bit指示。PUSCH的功率控制具体指示的含义见协议213的表5.1.1.1-2和表5.1.1.1-3。PUCCH的功率控制具体指示的含义见协议213的表5.1.2.1-1和表5.1.2.1-2
+5.3.3.1.7Format 3A
+DCI format 3A is used for the transmission of TPC commands for PUCCH and PUSCH with single bit power adjustments. 
+The following information is transmitted by means of the DCI format 3A:
+- TPC command number 1, TPC command number 2,…, TPC command number M
+where , and where  is equal to the payload size of format 0 before CRC attachment, including any padding bits appended to format 0. The parameter tpc-Index provided by higher layers determines the index to the TPC command for a given UE.
+
+5.3.3.2CRC attachment
+Error detection is provided on DCI transmissions through a Cyclic Redundancy Check (CRC). 
+The entire PDCCH payload is used to calculate the CRC parity bits. Denote the bits of the PDCCH payload by, and the parity bits by. A is the PDCCH payload size and L is the number of parity bits.
+The parity bits are computed and attached according to section 5.1.1 setting L to 16 bits, resulting in the sequence, where B = A+ L. 
+In the case where UE transmit antenna selection is not configured or applicable, after attachment, the CRC parity bits are scrambled with the corresponding RNTI  , where  corresponds to the MSB of the RNTI, to form the sequence of bits. The relation between ck and bk is:
+ for k = 0, 1, 2, …, A-1
+for k = A, A+1, A+2,..., A+15. 
+In the case where UE transmit antenna selection is configured and applicable, after attachment, the CRC parity bits of PDCCH with DCI format 0 are scrambled with the antenna selection mask  as indicated in Table 5.3.3.2-1 and the corresponding RNTI  to form the sequence of bits. The relation between ck and bk is:
+ for k = 0, 1, 2, …, A-1
+for k = A, A+1, A+2,..., A+15. 
+Table 5.3.3.2-1: UE transmit antenna selection mask.
+TBL: UE transmit antenna selection  || Antenna selection mask
+TBL: UE port 0 || <0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>
+TBL: UE port 1 || <0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>
+UE transmit antenna selection 
+Antenna selection mask
+UE port 0
+<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>
+UE port 1
+<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>
+
+5.3.3.3Channel coding
+Information bits are delivered to the channel coding block. They are denoted by  , where K is the number of bits, and they are tail biting convolutionally encoded according to section 5.1.3.1. 
+After encoding the bits are denoted by , with , and where D is the number of bits on the i-th coded stream, i.e., . 
+5.3.3.4Rate matching
+A tail biting convolutionally coded block is delivered to the rate matching block. This block of coded bits is denoted by , with , and where i is the coded stream index and D is the number of bits in each coded stream. This coded block is rate matched according to section 5.1.4.2.
+After rate matching, the bits are denoted by , where E is the number of rate matched bits. 
+5.3.4Control format indicator
+Data arrives each subframe to the coding unit in the form of an indicator for the time span, in units of OFDM symbols, of the DCI in that subframe. The CFI takes values CFI = 1, 2 or 3. For system bandwidths , the span of the DCI in units of OFDM symbols, 1, 2 or 3, is given by the CFI. For system bandwidths , the span of the DCI in units of OFDM symbols, 2, 3 or 4, is given by CFI+1.
+The coding flow is shown in Figure 5.3.4-1. 
+
+Figure 5.3.4-1 Coding for CFI.
+5.3.4.1Channel coding
+The control format indicator is coded according to Table 5.3.4-1.
+Table 5.3.4-1: CFI code words.
+TBL: CFI || CFI code word | < b0, b1, …, b31 >
+TBL: 1 || <0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1>
+TBL: 2 || <1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0>
+TBL: 3 || <1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1>
+TBL: 4 (Reserved) || <0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0>
+CFI
+CFI code word
+< b0, b1, …, b31 >
+1
+<0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1>
+2
+<1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0>
+3
+<1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,1>
+4 (Reserved)
+<0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0>
+
+5.3.5HARQ indicator (HI)
+Data arrives to the coding unit in the form of indicators for HARQ acknowledgement.
+The coding flow is shown in Figure 5.3.5-1. 
+
+Figure 5.3.5-1 Coding for HI.
+5.3.5.1Channel coding
+The HI is coded according to Table 5.3.5-1, where for a positive acknowledgement HI = 1 and for a negative acknowledgement HI = 0.
+Table 5.3.5-1: HI code words.
+TBL: HI || HI code word | < b0, b1, b2 >
+TBL: 0 || < 0,0,0 >
+TBL: 1 || < 1,1,1 >
+HI
+HI code word
+< b0, b1, b2 >
+0
+< 0,0,0 >
+1
+< 1,1,1 >
+
+Annex A (informative):Change history
+
+TBL: Change history
+TBL: Date || TSG # || TSG Doc. || CR || Rev || Subject/Comment || Old || New
+TBL: 2006-09 ||  ||  ||  ||  || Skeleton ||  || 0.0.0
+TBL: 2006-10 ||  ||  ||  ||  || Updated skeleton || 0.0.0 || 0.0.1
+TBL: 2006-10 ||  ||  ||  ||  || Endorsed skeleton || 0.0.1 || 0.1.0
+TBL: 2006-11 ||  ||  ||  ||  || Added TC. Added Broadcast, Paging and MBMS transport channels in Table 4.2-1. || 0.1.0 || 0.1.1
+TBL: 2006-11 ||  ||  ||  ||  || Endorsed v 0.2.0 || 0.1.1 || 0.2.0
+TBL: 2006-12 ||  ||  ||  ||  || Added CC. Added type of coding for each transport channel or control information. || 0.2.0 || 0.2.1
+TBL: 2007-01 ||  ||  ||  ||  || Editor’s version || 0.2.1 || 0.2.2
+TBL: 2007-01 ||  ||  ||  ||  || Endorsed v 0.3.0 || 0.2.2 || 0.3.0
+TBL: 2007-02 ||  ||  ||  ||  || Added QPP turbo Interleaver description. || 0.3.0 || 0.3.1
+TBL: 2007-02 ||  ||  ||  ||  || Editor’s version || 0.3.1 || 0.3.2
+TBL: 2007-02 ||  ||  ||  ||  || Endorsed v 0.4.0 || 0.3.2 || 0.4.0
+TBL: 2007-02 ||  ||  ||  ||  || Added CRC details for PDSCH, PDCCH and PUSCH. Added QPP turbo-interleaver parameters. Set Z to 6144. Added details on code block segmentation. || 0.4.0 || 0.4.1
+TBL: 2007-02 ||  ||  ||  ||  || Editor’s version || 0.4.1 || 0.4.2
+TBL: 2007-03 || RAN#35 || RP-070170 ||  ||  || For information at RAN#35 || 0.4.2 || 1.0.0
+TBL: 2007-03 ||  ||  ||  ||  || Editor’s version || 1.0.0 || 1.0.1
+TBL: 2007-03 ||  ||  ||  ||  || Editor’s version || 1.0.1 || 1.1.0
+TBL: 2007-05 ||  ||  ||  ||  || Editor’s version || 1.1.0 || 1.1.1
+TBL: 2007-05 ||  ||  ||  ||  || Editor’s version  || 1.1.1 || 1.1.2
+TBL: 2007-05 ||  ||  ||  ||  || Editor’s version || 1.1.2 || 1.2.0
+TBL: 2007-06 ||  ||  ||  ||  || Added circular buffer rate matching for PDSCH and PUSCH. Miscellaneous changes.  || 1.2.0 || 1.2.1
+TBL: 2007-06 ||  ||  ||  ||  || Editor’s version || 1.2.1 || 1.2.2
+TBL: 2007-07 ||  ||  ||  ||  || Editor’s version || 1.2.2 || 1.2.3
+TBL: 2007-07 ||  ||  ||  ||  || Endorsed by email following decision taken at RAN1#49b || 1.2.3 || 1.3.0
+TBL: 2007-08 ||  ||  ||  ||  || Editor’s version including decision from RAN1#49bis.  || 1.3.0 || 1.3.1
+TBL: 2007-08 ||  ||  ||  ||  || Editor’s version || 1.3.1 || 1.3.2
+TBL: 2007-08 ||  ||  ||  ||  || Editor’s version || 1.3.2 || 1.4.0
+TBL: 2007-09 ||  ||  ||  ||  || Editor’s version with decisions from RAN1#50 || 1,4.0 || 1,4,1
+TBL: 2007-09 ||  ||  ||  ||  || Editor’s version || 1.4.1 || 1.4.2
+TBL: 10/09/07 || RAN#37 || RP-070730 || - || - || For approval at RAN#37 || 1.4.2 || 2.0.0
+TBL: 12/09/07 || RAN_37 || RP-070730 || - || - || Approved version || 2.0.0 || 8.0.0
+TBL: 28/11/07 || RAN_38 || RP-070949 || 0001 || - || Update of 36.212 || 8.0.0 || 8.1.0
+TBL: 05/03/08 || RAN_39 || RP-080145 || 0002 || - || Update to 36.212 incorporating decisions from RAN1#51bis and RAN1#52 || 8.1.0 || 8.2.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0003 || - || Joint coding of CQI and ACK on PUCCH || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0004 || 1 || ACK insertion into PUSCH || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0005 || 1 || Introduction of format 1C || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0006 || 1 || Miscellaneous fixes to 36.212 || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0008 || 1 || On multiplexing scheme for indicators || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0009 || 1 || On the soft buffer split of MIMO and TDD || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0010 || - || Resource assignment field for distributed VRB || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0011 || - || Clarifying the use of the different DCI formats || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0012 || 1 || Clarifying the value of NL || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0013 || - || Payload size for DCI formats 3 and 3A || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0014 || - || Coding of ACK on PUSCH || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0015 || 1 || Coding of RI on PUSCH and mapping || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0016 || - || CRC for control information on PUSCH || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0017 || - || Introduction of Downlink Assignment Index || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0018 || - || Coding of CQI/PMI on PUSCH coming from PUCCH || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0019 || - || Simultaneous transmission of aperiodic CQI and UL control || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0020 || - || Encoding of antenna indicator on DCI format 0 || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0021 || - || PDCCH coverage in narrow bandwidths || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080433 || 0022 || - || Closed-loop and open-loop spatial multiplexing || 8.2.0 || 8.3.0
+TBL: 28/05/08 || RAN_40 || RP-080457 || 0023 || - || Formula for linkage between PUSCH MCS and amount of resources used for control || 8.2.0 || 8.3.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0026 || - || Correction to PUSCH Channel Interleaver || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0028 || - || Correction of mapping of ACK/NAK to binary bit values || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0029 || - || Correction to bit collection, selection and transmission || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0030 || - || Padding one bit to DCI format 1 when format 1 and format 0/1A have the same size || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0031 || - || Modification of M_limit || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0032 || - || Definition of Formats 2 and 2A || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0033 || 2 || Corrections to DCI formats || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0035 || 1 || Format 1B confirmation flag || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0036 || - || Corrections to Rank information scrambling in Uplink Shared Channel || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0037 || 2 || Clarification of TPC commands signaled in DCI formats 3/3A || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0038 || - || Clarification on UE transmit antenna selection mask || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0039 || 1 || Linking of control resources in PUSCH to data MCS || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0041 || - || Definition of Bit Mapping for DCI signalling || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0042 || 1 || Clarification on resource allocation in DCI format 1/2/2A || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0043 || - || DCI Format 1A changes needed for scheduling Broadcast Control || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0044 || - || DCI format1C  || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0045 || - || Miscellaneous corrections || 8.3.0 || 8.4.0
+TBL: 11/09/08 || RAN_41 || RP-080736 || 0046 || 1 || Correction on downlink multi-user MIMO || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0047 || - || Corrections to DL DCI Formats In case of Ambiguous Payload Sizes || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0048 || - || CR for RE provisioning for the control information in case of CQI-only transmission on PUSCH || 8.3.0 || 8.4.0
+TBL: 09/09/08 || RAN_41 || RP-080669 || 0091 || 2 || Coding and multiplexing of multiple ACK/NACK in PUSCH || 8.3.0 || 8.4.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0050 || 2 || Clarification of input bits corresponding to 2-bit HARQ-ACK and 2-bit RI || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0053 || - || Editorial corrections to 36.212 || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0055 || - || Miscellaneous Corrections || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0057 || - || Clarification of mapping of information bits || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0058 || - || Completion of 36.212 CR47 (R1-083421) for “new” DCI Formats || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0059 || - || Change for determining DCI format 1A TBS table column indicator for broadcast control || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0061 || 2 || Defining DCI format 1A for downlink data arrival || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0063 || 1 || ACK/NACK transmission on PUSCH for LTE TDD || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0065 || - || Correction in 36.212 related to TDD downlink HARQ processes || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0067 || 1 || Correction of control MCS offset and SRS symbol puncturing || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0068 || 1 || DCI format 2/2A || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0069 || - || Correction to zero padding in DCI format 1 || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0071 || - || Clarification of RI bit field mapping for PUCCH || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0072 || - || Clarifying RNTI bit mapping for PDCCH CRC scrambling || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0073 || - || Clarification on BCH transport block size || 8.4.0 || 8.5.0
+TBL: 03/12/08 || RAN_42 || RP-080983 || 0076 || - || Clarification on the number of PUCCH-based CQI/PMI bits when reported on PUSCH || 8.4.0 || 8.5.0
+TBL: 04/03/09 || RAN_43 || RP-090235 || 77 || 1 || Corrections to Transmitted Rank Indication || 8.5.0 || 8.6.0
+TBL: 04/03/09 || RAN_43 || RP-090235 || 79 || 1 || Correction to the bundled ACK/NACK and DAI transmission   || 8.5.0 || 8.6.0
+TBL: 04/03/09 || RAN_43 || RP-090235 || 80 || 2 || Corrections to transmission modes || 8.5.0 || 8.6.0
+TBL: 04/03/09 || RAN_43 || RP-090235 || 81 || 1 || Correction on ACKNACK transmission on PUSCH for LTE TDD || 8.5.0 || 8.6.0
+TBL: 04/03/09 || RAN_43 || RP-090235 || 82 || 2 || Corrections to CQI and RI fields description || 8.5.0 || 8.6.0
+TBL: 04/03/09 || RAN_43 || RP-090235 || 83 || - || Clarifying DCI format 1A and DCI Format 1B || 8.5.0 || 8.6.0
+TBL: 04/03/09 || RAN_43 || RP-090235 || 92 || 1 || Clarification on channel coding for UCI HARQ-ACK || 8.5.0 || 8.6.0
+TBL: 27/05/09 || RAN_44 || RP-090528 || 87 || - || Clarify some parameters for determining control resources on PUSCH || 8.6.0 || 8.7.0
+TBL: 01/12/09 || RAN_46 || RP-091168 || 89 || - || Clarification on bitwidth of RI || 8.7.0 || 8.8.0
+TBL: 01/12/09 || RAN_46 || RP-091168 || 94 || - || Correction to Channel interleaver for PUSCH RE Mapping || 8.7.0 || 8.8.0
+TBL: 01/12/09 || RAN_46 || RP-091177 || 88 || 1 || Editorial corrections to 36.212 || 8.8.0 || 9.0.0
+TBL: 01/12/09 || RAN_46 || RP-091257 || 95 || 1 || Introduction of enhanced dual layer transmission || 8.8.0 || 9.0.0
+TBL: 16/03/10 || RAN_47 || RP-100210 || 96 || 1 || MCCH change notification using DCI format 1C || 9.0.0 || 9.1.0
+TBL: 16/03/10 || RAN_47 || RP-100211 || 97 || - || Addition of missing reference to DCI format 2B + typo corrections || 9.0.0 || 9.1.0
+TBL: 01/06/10 || RAN_48 || RP-100589 || 98 || - || Correction to TBS determination for DCI format 1C || 9.1.0 || 9.2.0
+Change history
+Date
+TSG #
+TSG Doc.
+CR
+Rev
+Subject/Comment
+Old
+New
+2006-09
+
+
+
+
+Skeleton
+
+0.0.0
+2006-10
+
+
+
+
+Updated skeleton
+0.0.0
+0.0.1
+2006-10
+
+
+
+
+Endorsed skeleton
+0.0.1
+0.1.0
+2006-11
+
+
+
+
+Added TC. Added Broadcast, Paging and MBMS transport channels in Table 4.2-1.
+0.1.0
+0.1.1
+2006-11
+
+
+
+
+Endorsed v 0.2.0
+0.1.1
+0.2.0
+2006-12
+
+
+
+
+Added CC. Added type of coding for each transport channel or control information.
+0.2.0
+0.2.1
+2007-01
+
+
+
+
+Editor’s version
+0.2.1
+0.2.2
+2007-01
+
+
+
+
+Endorsed v 0.3.0
+0.2.2
+0.3.0
+2007-02
+
+
+
+
+Added QPP turbo Interleaver description.
+0.3.0
+0.3.1
+2007-02
+
+
+
+
+Editor’s version
+0.3.1
+0.3.2
+2007-02
+
+
+
+
+Endorsed v 0.4.0
+0.3.2
+0.4.0
+2007-02
+
+
+
+
+Added CRC details for PDSCH, PDCCH and PUSCH. Added QPP turbo-interleaver parameters. Set Z to 6144. Added details on code block segmentation.
+0.4.0
+0.4.1
+2007-02
+
+
+
+
+Editor’s version
+0.4.1
+0.4.2
+2007-03
+RAN#35
+RP-070170
+
+
+For information at RAN#35
+0.4.2
+1.0.0
+2007-03
+
+
+
+
+Editor’s version
+1.0.0
+1.0.1
+2007-03
+
+
+
+
+Editor’s version
+1.0.1
+1.1.0
+2007-05
+
+
+
+
+Editor’s version
+1.1.0
+1.1.1
+2007-05
+
+
+
+
+Editor’s version 
+1.1.1
+1.1.2
+2007-05
+
+
+
+
+Editor’s version
+1.1.2
+1.2.0
+2007-06
+
+
+
+
+Added circular buffer rate matching for PDSCH and PUSCH. Miscellaneous changes. 
+1.2.0
+1.2.1
+2007-06
+
+
+
+
+Editor’s version
+1.2.1
+1.2.2
+2007-07
+
+
+
+
+Editor’s version
+1.2.2
+1.2.3
+2007-07
+
+
+
+
+Endorsed by email following decision taken at RAN1#49b
+1.2.3
+1.3.0
+2007-08
+
+
+
+
+Editor’s version including decision from RAN1#49bis. 
+1.3.0
+1.3.1
+2007-08
+
+
+
+
+Editor’s version
+1.3.1
+1.3.2
+2007-08
+
+
+
+
+Editor’s version
+1.3.2
+1.4.0
+2007-09
+
+
+
+
+Editor’s version with decisions from RAN1#50
+1,4.0
+1,4,1
+2007-09
+
+
+
+
+Editor’s version
+1.4.1
+1.4.2
+10/09/07
+RAN#37
+RP-070730
+-
+-
+For approval at RAN#37
+1.4.2
+2.0.0
+12/09/07
+RAN_37
+RP-070730
+-
+-
+Approved version
+2.0.0
+8.0.0
+28/11/07
+RAN_38
+RP-070949
+0001
+-
+Update of 36.212
+8.0.0
+8.1.0
+05/03/08
+RAN_39
+RP-080145
+0002
+-
+Update to 36.212 incorporating decisions from RAN1#51bis and RAN1#52
+8.1.0
+8.2.0
+28/05/08
+RAN_40
+RP-080433
+0003
+-
+Joint coding of CQI and ACK on PUCCH
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0004
+1
+ACK insertion into PUSCH
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0005
+1
+Introduction of format 1C
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0006
+1
+Miscellaneous fixes to 36.212
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0008
+1
+On multiplexing scheme for indicators
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0009
+1
+On the soft buffer split of MIMO and TDD
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0010
+-
+Resource assignment field for distributed VRB
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0011
+-
+Clarifying the use of the different DCI formats
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0012
+1
+Clarifying the value of NL
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0013
+-
+Payload size for DCI formats 3 and 3A
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0014
+-
+Coding of ACK on PUSCH
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0015
+1
+Coding of RI on PUSCH and mapping
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0016
+-
+CRC for control information on PUSCH
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0017
+-
+Introduction of Downlink Assignment Index
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0018
+-
+Coding of CQI/PMI on PUSCH coming from PUCCH
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0019
+-
+Simultaneous transmission of aperiodic CQI and UL control
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0020
+-
+Encoding of antenna indicator on DCI format 0
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0021
+-
+PDCCH coverage in narrow bandwidths
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080433
+0022
+-
+Closed-loop and open-loop spatial multiplexing
+8.2.0
+8.3.0
+28/05/08
+RAN_40
+RP-080457
+0023
+-
+Formula for linkage between PUSCH MCS and amount of resources used for control
+8.2.0
+8.3.0
+09/09/08
+RAN_41
+RP-080669
+0026
+-
+Correction to PUSCH Channel Interleaver
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0028
+-
+Correction of mapping of ACK/NAK to binary bit values
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0029
+-
+Correction to bit collection, selection and transmission
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0030
+-
+Padding one bit to DCI format 1 when format 1 and format 0/1A have the same size
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0031
+-
+Modification of M_limit
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0032
+-
+Definition of Formats 2 and 2A
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0033
+2
+Corrections to DCI formats
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0035
+1
+Format 1B confirmation flag
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0036
+-
+Corrections to Rank information scrambling in Uplink Shared Channel
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0037
+2
+Clarification of TPC commands signaled in DCI formats 3/3A
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0038
+-
+Clarification on UE transmit antenna selection mask
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0039
+1
+Linking of control resources in PUSCH to data MCS
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0041
+-
+Definition of Bit Mapping for DCI signalling
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0042
+1
+Clarification on resource allocation in DCI format 1/2/2A
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0043
+-
+DCI Format 1A changes needed for scheduling Broadcast Control
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0044
+-
+DCI format1C 
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0045
+-
+Miscellaneous corrections
+8.3.0
+8.4.0
+11/09/08
+RAN_41
+RP-080736
+0046
+1
+Correction on downlink multi-user MIMO
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0047
+-
+Corrections to DL DCI Formats In case of Ambiguous Payload Sizes
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0048
+-
+CR for RE provisioning for the control information in case of CQI-only transmission on PUSCH
+8.3.0
+8.4.0
+09/09/08
+RAN_41
+RP-080669
+0091
+2
+Coding and multiplexing of multiple ACK/NACK in PUSCH
+8.3.0
+8.4.0
+03/12/08
+RAN_42
+RP-080983
+0050
+2
+Clarification of input bits corresponding to 2-bit HARQ-ACK and 2-bit RI
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0053
+-
+Editorial corrections to 36.212
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0055
+-
+Miscellaneous Corrections
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0057
+-
+Clarification of mapping of information bits
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0058
+-
+Completion of 36.212 CR47 (R1-083421) for “new” DCI Formats
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0059
+-
+Change for determining DCI format 1A TBS table column indicator for broadcast control
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0061
+2
+Defining DCI format 1A for downlink data arrival
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0063
+1
+ACK/NACK transmission on PUSCH for LTE TDD
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0065
+-
+Correction in 36.212 related to TDD downlink HARQ processes
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0067
+1
+Correction of control MCS offset and SRS symbol puncturing
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0068
+1
+DCI format 2/2A
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0069
+-
+Correction to zero padding in DCI format 1
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0071
+-
+Clarification of RI bit field mapping for PUCCH
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0072
+-
+Clarifying RNTI bit mapping for PDCCH CRC scrambling
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0073
+-
+Clarification on BCH transport block size
+8.4.0
+8.5.0
+03/12/08
+RAN_42
+RP-080983
+0076
+-
+Clarification on the number of PUCCH-based CQI/PMI bits when reported on PUSCH
+8.4.0
+8.5.0
+04/03/09
+RAN_43
+RP-090235
+77
+1
+Corrections to Transmitted Rank Indication
+8.5.0
+8.6.0
+04/03/09
+RAN_43
+RP-090235
+79
+1
+Correction to the bundled ACK/NACK and DAI transmission  
+8.5.0
+8.6.0
+04/03/09
+RAN_43
+RP-090235
+80
+2
+Corrections to transmission modes
+8.5.0
+8.6.0
+04/03/09
+RAN_43
+RP-090235
+81
+1
+Correction on ACKNACK transmission on PUSCH for LTE TDD
+8.5.0
+8.6.0
+04/03/09
+RAN_43
+RP-090235
+82
+2
+Corrections to CQI and RI fields description
+8.5.0
+8.6.0
+04/03/09
+RAN_43
+RP-090235
+83
+-
+Clarifying DCI format 1A and DCI Format 1B
+8.5.0
+8.6.0
+04/03/09
+RAN_43
+RP-090235
+92
+1
+Clarification on channel coding for UCI HARQ-ACK
+8.5.0
+8.6.0
+27/05/09
+RAN_44
+RP-090528
+87
+-
+Clarify some parameters for determining control resources on PUSCH
+8.6.0
+8.7.0
+01/12/09
+RAN_46
+RP-091168
+89
+-
+Clarification on bitwidth of RI
+8.7.0
+8.8.0
+01/12/09
+RAN_46
+RP-091168
+94
+-
+Correction to Channel interleaver for PUSCH RE Mapping
+8.7.0
+8.8.0
+01/12/09
+RAN_46
+RP-091177
+88
+1
+Editorial corrections to 36.212
+8.8.0
+9.0.0
+01/12/09
+RAN_46
+RP-091257
+95
+1
+Introduction of enhanced dual layer transmission
+8.8.0
+9.0.0
+16/03/10
+RAN_47
+RP-100210
+96
+1
+MCCH change notification using DCI format 1C
+9.0.0
+9.1.0
+16/03/10
+RAN_47
+RP-100211
+97
+-
+Addition of missing reference to DCI format 2B + typo corrections
+9.0.0
+9.1.0
+01/06/10
+RAN_48
+RP-100589
+98
+-
+Correction to TBS determination for DCI format 1C
+9.1.0
+9.2.0
