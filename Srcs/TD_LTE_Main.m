@@ -1,4 +1,4 @@
-%% TD-LTE 物理层下行链路 环回测试主脚本
+%% TD-LTE 物理层 (PUSCH结构) 环回测试主脚本
 %  功能: 发送 -> XSRP RF环回 -> 接收 -> CRC校验
 
 clear; clc;
