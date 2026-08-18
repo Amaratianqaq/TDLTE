@@ -1,0 +1,27 @@
+%% TD-LTE 物理层下行链路 环回测试主脚本
+%  功能: 发送 -> XSRP RF环回 -> 接收 -> CRC校验
+
+clear; clc;
+
+%% 0. 添加路径
+srcDir = fileparts(mfilename('fullpath'));
+addpath(srcDir);
+addpath(fullfile(srcDir, 'Tx'));
+addpath(fullfile(srcDir, 'Rx'));
+
+%% 1. 参数配置
+prm = GetLTEParams();
+
+%% 2. 发送端: 生成时域IQ信号
+txIQ = OFDM_TxMain(prm);
+
+%% 3. RF环回: 通过XSRP平台收发
+pcip   = '192.168.1.180';
+xsrpip = '192.168.1.166';
+rxIQ   = OFDM_RFLoopback(txIQ, pcip, xsrpip);
+
+%% 4. 接收端: 解调并校验
+[bits, crcOK] = OFDM_RxMain(rxIQ, prm);
+
+%% 5. 结果输出
+fprintf('CRC校验结果: %s\n', mat2str(crcOK));

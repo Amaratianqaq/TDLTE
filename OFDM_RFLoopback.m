@@ -90,7 +90,7 @@ while recvInd == 1
     % 从网口读数据
     [udp_data,count] = fread(udp_obj,RECV_PACKET_LENGTH);
     %接收数据拼接
-    for (pj = 1 : count)
+    for pj = 1 : count
         udp_data_rr0(data_byte_c+pj) = udp_data(pj);
     end
     data_byte_c = data_byte_c + count;
