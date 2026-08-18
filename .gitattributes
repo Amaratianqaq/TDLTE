@@ -1,0 +1,20 @@
+# 默认规则
+* text=auto eol=lf
+
+# Markdown 文件
+*.md        text    diff=markdown
+
+# 脚本
+*.bat       text    eol=crlf
+*.sh        text    eol=lf
+
+# 二进制
+*.dll       binary
+*.exe       binary
+*.pdb       binary
+*.png       binary
+*.jpg       binary
+*.ico       binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
