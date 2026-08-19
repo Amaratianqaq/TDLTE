@@ -1,0 +1,2 @@
+# matlab
+*.m text diff=matlab eol=lf

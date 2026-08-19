@@ -5,8 +5,18 @@ function out = CodeBlockCat(cbOutputs)
 % 输出:
 %   out - 拼接后的bit列向量, 长度 G = sum(E_r)
 
-out = [];
+% 计算总长度并预分配
+totalLen = 0;
 for r = 1:numel(cbOutputs)
-    out = [out; cbOutputs{r}(:)];
+    totalLen = totalLen + numel(cbOutputs{r});
+end
+out = zeros(totalLen, 1);
+
+% 填充数据
+idx = 1;
+for r = 1:numel(cbOutputs)
+    len = numel(cbOutputs{r});
+    out(idx:idx+len-1) = cbOutputs{r}(:);
+    idx = idx + len;
 end
 end

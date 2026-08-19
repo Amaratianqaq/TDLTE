@@ -21,7 +21,7 @@ cbOutputs = cell(segInfo.C, 1);
 for r = 1:segInfo.C
     coded = TurboEncode(cbs{r}, segInfo.K(r));
     cbOutputs{r} = RateMatch(coded, segInfo.K(r), segInfo.C, ...
-                             info.G, info.Qm, prm.NL, prm.RV);
+        info.G, info.Qm, prm.NL, prm.RV);
 end
 codedBits = CodeBlockCat(cbOutputs);               % 长度 = G
 

@@ -25,7 +25,7 @@ Kpi = R * Ccol;
 ND = Kpi - D;
 NULL = -1;
 P = [0 16 8 24 4 20 12 28 2 18 10 26 6 22 14 30 ...
-     1 17 9 25 5 21 13 29 3 19 11 27 7 23 15 31];
+    1 17 9 25 5 21 13 29 3 19 11 27 7 23 15 31];
 
 % --- 子块交织 (y=[NULL在前, d]; 流2的y整体循环移位1位) ---
 d = coded.';                                  % 3 x D (输入为3列矩阵)
@@ -47,12 +47,14 @@ w(Kpi+2:2:end)   = v(3, :);
 Ncb = 3 * Kpi;
 E = NL * Qm * floor(G / (NL * Qm * C));
 k0 = R * (2 * ceil(Ncb / (8 * R)) * rvidx + 2);
-out = [];
+out = zeros(E, 1);
+count = 0;
 j = 0;
-while numel(out) < E
+while count < E
     x = w(mod(k0 + j, Ncb) + 1);
     if x ~= NULL
-        out = [out; x];
+        count = count + 1;
+        out(count) = x;
     end
     j = j + 1;
 end
