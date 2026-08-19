@@ -11,4 +11,26 @@ function txIQ = OFDM_TxMain(prm)
 % 输出:
 %   txIQ - 时域复数IQ信号 (1ms子帧, 30720样点)
 
+%% 1) 信源 -> 添加TB级CRC24A
+[bits, info] = TBGen(prm);
+bitsCRC = CRCAttach(bits, '24A');
+
+%% 2) 码块分割 -> Turbo编码 -> 速率匹配 -> 码块级联
+[cbs, segInfo] = CodeBlockSeg(bitsCRC);
+cbOutputs = cell(segInfo.C, 1);
+for r = 1:segInfo.C
+    coded = TurboEncode(cbs{r}, segInfo.K(r));
+    cbOutputs{r} = RateMatch(coded, segInfo.K(r), segInfo.C, ...
+                             info.G, info.Qm, prm.NL, prm.RV);
+end
+codedBits = CodeBlockCat(cbOutputs);               % 长度 = G
+
+%% 3) 加扰 -> 调制 (G/Qm = 1200*12 个复数符号)
+scrambled = Scramble(codedBits, prm);
+sym = Modulate(scrambled, prm.Modulation);
+
+%% 4) 生成导频 -> 资源映射 -> OFDM调制 (子载波映射+IFFT+加CP)
+[rs0, rs1] = RefSignalGen(prm);
+grid = ResMap(sym, rs0, rs1, prm);                 % 1200 x 14
+txIQ = OFDMMod(grid, prm);                         % 1 x 30720
 end
