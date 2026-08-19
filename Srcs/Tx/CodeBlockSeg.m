@@ -47,12 +47,15 @@ for r = 0:C-1
     else
         d = Kr - L;                      % 其余块: 扣CRC
     end
-    seg = bits(ptr:ptr+d-1); ptr = ptr + d;
+    if r == 0 && F > 0
+        seg = zeros(F + d, 1);           % 预分配filler+数据, 避免拼接
+        seg(F+1:end) = bits(ptr:ptr+d-1);
+    else
+        seg = bits(ptr:ptr+d-1);
+    end
+    ptr = ptr + d;
     if C > 1
         seg = CRCAttach(seg, '24B');     % 码块CRC24B (filler按0参与计算)
-    end
-    if r == 0 && F > 0
-        seg = [zeros(F, 1); seg];        % filler(0)放在码块0开头
     end
     cbs{r+1} = seg;
 end

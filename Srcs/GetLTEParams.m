@@ -39,6 +39,7 @@ switch prm.Modulation
 end
 prm.NL         = 1;                   % 传输层数
 prm.RV         = 0;                   % 冗余版本 (0~3)
+prm.maxIter    = 6;                   % Turbo译码最大迭代次数
 
 %% ===== 循环前缀(正常CP) =====
 % 每时隙7个符号: 符号0的CP=160, 符号1~6的CP=144; 子帧含2个时隙
