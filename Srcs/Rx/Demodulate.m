@@ -40,10 +40,12 @@ constellation = I_grid + 1i * Q_grid;       % Qm个星座点
 constellation = constellation(:);
 
 % 构建星座点对应的bit表
+% 注意: ndgrid + (:) 为列优先, 索引顺序为 (i,j)=(1,1),(2,1),...,(n,1),(1,2),...
+% 故 idx 与 (i,j) 的关系: i = mod(idx-1,numel(mI))+1, j = ceil(idx/numel(mI))
 bitTable = zeros(numel(constellation), Qm);
 for idx = 1:numel(constellation)
-    iIdx = ceil(idx / numel(mQ));            % I索引
-    qIdx = mod(idx-1, numel(mQ)) + 1;       % Q索引
+    iIdx = mod(idx-1, numel(mI)) + 1;       % I索引 (先变)
+    qIdx = ceil(idx / numel(mI));           % Q索引 (后变)
     iBits = de2bi(iIdx-1, Qm/2, 'left-msb');
     qBits = de2bi(qIdx-1, Qm/2, 'left-msb');
     bitTable(idx, 1:2:Qm) = iBits;

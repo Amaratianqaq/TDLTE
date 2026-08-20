@@ -46,25 +46,30 @@ d2(K+1:K+4) = [x1(2); z1t(3); x2(2); z2t(3)];
 coded = [d0, d1, d2];
 end
 
-%% ===== 局部函数: 8状态RSC编码器(含尾比特) =====
+%% ===== 局部函数: 8状态RSC编码器(含尾比特, 表驱动) =====
 function [z, x, zt] = rscEncode(c)
-% 递推: w_k = c_k xor s2 xor s3;  z_k = w_k xor s1 xor s3
+% 表驱动实现, 与 MATLAB poly2trellis(4,[15 13],15) 完全一致
+% (该 trellis 即 36.212 图 5.1.3-2 的 8 状态 RSC: g0=1+D^2+D^3, g1=1+D+D^3)
+% NS(s+1, inp+1) = 下一状态; OUT(s+1, inp+1) = 输出(十进制2bit), 校验位=LSB
+NS  = [0 4; 4 0; 1 5; 5 1; 6 2; 2 6; 7 3; 3 7];
+OUT = [0 3; 0 3; 1 2; 1 2; 1 2; 1 2; 0 3; 0 3];
 K = numel(c);
-s1 = 0; s2 = 0; s3 = 0;
+s = 0;
 z = zeros(K, 1);
 for k = 1:K
-    w = mod(c(k) + s2 + s3, 2);
-    z(k) = mod(w + s1 + s3, 2);
-    s3 = s2; s2 = s1; s1 = w;
+    o = OUT(s+1, c(k)+1);
+    z(k) = mod(o, 2);           % 校验输出 = 输出符号的LSB
+    s = NS(s+1, c(k)+1);
 end
-% 尾比特: 反馈值 x = s2 xor s3, 喂回编码器直至归零
+% 尾比特: 反馈值 x = s1 xor s3 (状态最高位 xor 最低位), 喂回直至归零
+% (反馈函数由 nextStates 表推出: f(s) = MSB(next(s,0)) + 0)
 x = zeros(3, 1);
 zt = zeros(3, 1);
 for t = 1:3
-    xb = mod(s2 + s3, 2);
+    xb = bitxor(bitand(bitshift(s, -2), 1), bitand(s, 1));  % MSB xor LSB
     x(t) = xb;
-    w = mod(xb + s2 + s3, 2);
-    zt(t) = mod(w + s1 + s3, 2);
-    s3 = s2; s2 = s1; s1 = w;
+    o = OUT(s+1, xb+1);
+    zt(t) = mod(o, 2);
+    s = NS(s+1, xb+1);
 end
 end
