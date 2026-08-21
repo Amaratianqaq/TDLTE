@@ -49,7 +49,7 @@ test_Get_IQ  = uint8(hex2dec({'00','00','99','bb', '66','01','00','01',  '00','8
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%创建UDP对象
-udp_obj = udpport("datagram","LocalHost",pcip,"LocalPort",12345,"Timeout",15,"OutputBufferSize",61440);
+udp_obj = udpport("datagram","LocalHost",pcip,"LocalPort",12345,"Timeout",15);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%发送配置命令
