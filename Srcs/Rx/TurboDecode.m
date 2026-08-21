@@ -15,8 +15,7 @@ function [decoded, crcOK] = TurboDecode(coded, K, maxIter)
 %   - 交织器/去交织器与编码端一致 (TurboIntlvrIdx)
 %   - 迭代maxIter次后硬判决输出
 
-% 提取3路接收LLR (D = K+4 行, 含尾比特)
-D = K + 4;
+% 提取3路接收LLR (每列 D = K+4 行, 含尾4位)
 r0 = coded(:, 1);   % 系统比特LLR
 r1 = coded(:, 2);   % 校验流1 LLR
 r2 = coded(:, 3);   % 校验流2 LLR
@@ -24,22 +23,32 @@ r2 = coded(:, 3);   % 校验流2 LLR
 % 交织器索引
 piIdx = TurboIntlvrIdx(K);
 
+% 尾比特对角线重排 (36.212 5.1.3.2.2):
+%   流0尾=[xk, z(k+1), x'k, z'(k+1)], 流1尾=[zk, x(k+2), z'k, x'(k+2)],
+%   流2尾=[x(k+1), z(k+2), x'(k+1), z'(k+2)]
+%   每个编码器3个尾步, 配对关系:
+%     SISO1(编码器1): 输入=[xk,x(k+1),x(k+2)], 校验=[zk,z(k+1),z(k+2)]
+%     SISO2(编码器2): 输入=[x'k,x'(k+1),x'(k+2)], 校验=[z'k,z'(k+1),z'(k+2)]
+tailSys1 = [r0(K+1); r2(K+1); r1(K+2)];   % 编码器1输入尾
+tailPar1 = [r1(K+1); r0(K+2); r2(K+2)];   % 编码器1校验尾
+tailSys2 = [r0(K+3); r2(K+3); r1(K+4)];   % 编码器2输入尾
+tailPar2 = [r1(K+3); r0(K+4); r2(K+4)];   % 编码器2校验尾
+
 % 初始化先验信息
 Le21 = zeros(K, 1);  % SISO2输出的外信息 -> 解交织 -> SISO1的先验
 
 %% 迭代译码
 for iter = 1:maxIter
-    % SISO1: 输入系统比特r0, 校验比特r1, 先验信息Le21
-    % 尾比特(后4行)参与trellis递推, 提供尾部约束(终止状态0)
-    Le1 = sisoLogMap(r0, r1, Le21, K, D);
+    % SISO1: 系统比特r0, 校验比特r1, 先验信息Le21
+    % 尾比特(3个尾步)参与trellis递推, 提供尾部约束(终止状态0)
+    Le1 = sisoLogMap([r0(1:K); tailSys1], [r1(1:K); tailPar1], Le21, K);
 
     % 交织: SISO1的外信息交织后作为SISO2的先验
     Le12 = Le1(piIdx + 1);
 
-    % SISO2: 输入交织后的系统比特, 校验比特r2, 先验信息Le12
-    % (尾比特不参与交织, 原样透传)
-    r0_pi = [r0(piIdx + 1); r0(K+1:D)];
-    Le2 = sisoLogMap(r0_pi, r2, Le12, K, D);
+    % SISO2: 交织后的系统比特, 校验比特r2, 先验信息Le12
+    % (尾比特不参与交织)
+    Le2 = sisoLogMap([r0(piIdx + 1); tailSys2], [r2(1:K); tailPar2], Le12, K);
 
     % 解交织: SISO2的外信息解交织后作为SISO1的先验
     Le21(piIdx + 1) = Le2;
@@ -61,19 +70,20 @@ end
 end
 
 %% ===== 局部函数: SISO Log-MAP译码器 =====
-function Le = sisoLogMap(sys, par, La, K, D)
+function Le = sisoLogMap(sys, par, La, K)
 % Log-MAP算法实现8状态RSC译码器
 % 输入:
-%   sys - 系统比特LLR (D x 1, 后4行为尾比特)
-%   par - 校验比特LLR (D x 1, 后4行为尾比特校验)
+%   sys - 系统比特LLR ((K+3) x 1, 后3行为重排后的尾比特)
+%   par - 校验比特LLR ((K+3) x 1, 后3行为重排后的尾比特校验)
 %   La  - 先验信息 (K x 1, 仅前K步有先验)
 %   K   - 码块长度
-%   D   - trellis步数 (D = K+4, 含尾比特)
 % 输出:
 %   Le  - 外信息 (K x 1)
+% 注: 每个编码器只有3个尾步 (36.212 5.1.3.2.2), 总步数 D = K+3
 
 Nst = 8;  % 8个状态
 Le = zeros(K, 1);
+D = K + 3;                                    % 总步数 = K数据位 + 3尾步
 
 % 状态转移表 (8状态RSC: g0=1+D^2+D^3, g1=1+D+D^3)
 % next_state(s, input) -> 下一状态
@@ -86,7 +96,7 @@ alpha(1, 1) = 0;  % 初始状态为0
 
 % 后向递推度量
 beta = -inf(D+1, Nst);
-beta(D+1, 1) = 0;  % 终止状态为0 (尾比特使编码器归零)
+beta(D+1, 1) = 0;  % 终止状态为0 (3个尾比特使编码器归零)
 
 % 分支度量
 gamma = -inf(D, Nst, 2);

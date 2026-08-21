@@ -27,15 +27,19 @@ NULL = -1;
 P = [0 16 8 24 4 20 12 28 2 18 10 26 6 22 14 30 ...
     1 17 9 25 5 21 13 29 3 19 11 27 7 23 15 31];
 
-% --- 子块交织 (y=[NULL在前, d]; 流2的y整体循环移位1位) ---
+% --- 子块交织 (y=[NULL在前, d]) ---
 d = coded.';                                  % 3 x D (输入为3列矩阵)
 y = [NULL * ones(3, ND), d];                  % 3 x Kpi
-y(3, :) = circshift(y(3, :), [0 -1]);      % 校验流2 (36.212 5.1.4.1.1)
 v = zeros(3, Kpi);
 for k = 0:Kpi-1
     j = floor(k / R); r = mod(k, R);
     v(:, k + 1) = y(:, r * Ccol + P(j + 1) + 1);
 end
+
+% --- 校验流2按协议重排 (36.212 5.1.4.1.1) ---
+%   v2(k) = v(pi(k)), pi(k) = (P(floor(k/R)) + C_column*(mod(k,R)) + 1) mod Kpi
+piIdx = mod(P(floor((0:Kpi-1) / R) + 1) + Ccol * mod((0:Kpi-1), R), Kpi) + 1;
+v(3, :) = v(3, piIdx);
 
 % --- 比特收集: 循环缓冲 ---
 w = zeros(1, 3 * Kpi);

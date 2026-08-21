@@ -56,11 +56,13 @@ for r = 1:C
     ptr = ptr + len;
 end
 
-% 2. 校验TB级CRC24A
+% 2. 校验TB级CRC24A (36.212 5.1.1: 整码字除G(x), 余数0则无错)
 L = 24;
-data = bits;
-crc = crcEncode([data; zeros(L, 1)], '24A');
+crc = crcEncode([bits; zeros(L, 1)], '24A');
 crcOK = all(crc == 0);
+
+% 3. 剥离TB-CRC, 输出原始传输块 (信息位在前A位, 校验位在后L位)
+bits = bits(1:end-L);
 
 end
 

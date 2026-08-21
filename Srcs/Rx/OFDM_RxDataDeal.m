@@ -61,9 +61,9 @@ for n = 1:numSamples
         i_raw = bitshift(i_raw, -4);
 
         % Q路解包: 反向字节重排
-        % 发送端: Q路 = b7~b0 空4bits b11~b8
-        % 接收端还原: 提取高8位和中间4位
-        q_raw = bitshift(q_raw, -8) + bitand(bitshift(q_raw, -4), 15) * 256;
+        % 发送端: Q路 = 高字节b7~b0, 低字节[空4bits b11~b8]
+        % 接收端还原: 提取高8位和低字节的低4位
+        q_raw = bitshift(q_raw, -8) + bitand(q_raw, 15) * 256;
     end
 
     %% 处理负数的补码还原 (12bit: 值 > 2047 时减 4096)

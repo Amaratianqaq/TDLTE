@@ -34,12 +34,15 @@ k0 = R * (2 * ceil(Ncb / (8 * R)) * rvidx + 2);
 % 按发送端RateMatch的同样方式构造y(含NULL)并子块交织, 得到v,
 % 其中NULL值=-1, 其余为0; 再组装成循环缓冲w (NULL位置=-1, 其余为NaN)
 y = [-1 * ones(3, ND), zeros(3, D)];
-y(3, :) = circshift(y(3, :), [0 -1]);      % 校验流2循环移位 (36.212 5.1.4.1.1)
 v = zeros(3, Kpi);
 for k = 0:Kpi-1
     j = floor(k / R); r = mod(k, R);
     v(:, k + 1) = y(:, r * Ccol + P(j + 1) + 1);
 end
+% 校验流2按协议重排 (36.212 5.1.4.1.1):
+%   v2(k) = v(pi(k)), pi(k) = (P(floor(k/R)) + C_column*(mod(k,R)) + 1) mod Kpi
+piIdx = mod(P(floor((0:Kpi-1) / R) + 1) + Ccol * mod((0:Kpi-1), R), Kpi) + 1;
+v(3, :) = v(3, piIdx);
 w = NaN(1, Ncb);                       % NaN=未填充, -1=NULL
 w(1:Kpi) = v(1, :);
 w(Kpi+1:2:end-1) = v(2, :);
@@ -47,11 +50,13 @@ w(Kpi+2:2:end)   = v(3, :);
 w(w == 0) = NaN;                        % 数据位(0)转为未填充标记
 
 % --- 步骤2: 将接收bit从k0起填入非NULL位置 ---
+% 注: 当E大于循环缓冲非NULL位数(比特重复场景)时, 同一位置会被写入
+% 多次, 发送端也是循环重复读取, 故此处允许覆盖写入 (与发送端对称)
 count = 0;
 j = 0;
 while count < E
     pos = mod(k0 + j, Ncb) + 1;
-    if isnan(w(pos))                        % 非NULL且未填充
+    if w(pos) ~= -1                         % 非NULL位置 (NULL=-1)
         w(pos) = bits(count + 1);
         count = count + 1;
     end
@@ -65,6 +70,10 @@ v2 = w(Kpi+1:2:3*Kpi-1);
 v3 = w(Kpi+2:2:3*Kpi);
 
 % --- 步骤4: 反子块交织 ---
+% 先恢复流2的原始交织输出: v2_raw(pi(k)) = v2_final(k) (协议 5.1.4.1.1 逆映射)
+v3_raw = zeros(1, Kpi);
+v3_raw(piIdx) = v3;
+
 % 与RateMatch的子块交织相反: 按列写入, 按行读出
 y1 = zeros(1, Kpi);
 y2 = zeros(1, Kpi);
@@ -74,11 +83,8 @@ for k = 0:Kpi-1
     r = mod(k, R);
     y1(r * Ccol + P(j+1) + 1) = v1(k+1);
     y2(r * Ccol + P(j+1) + 1) = v2(k+1);
-    y3(r * Ccol + P(j+1) + 1) = v3(k+1);
+    y3(r * Ccol + P(j+1) + 1) = v3_raw(k+1);
 end
-
-% 流2反循环移位
-y3 = circshift(y3, [0 1]);
 
 % --- 步骤5: 去除NULL, 硬判决bit转LLR (打孔位保持0=擦除) ---
 d0 = y1(ND+1:end);
