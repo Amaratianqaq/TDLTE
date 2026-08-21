@@ -1,4 +1,4 @@
-function [rxdataIQ] = OFDM_RFLoopback(txdataIQ,pcip,xsrpip)
+function [rxdataIQ] = OFDM_RFLoopback(txdataIQ,~,xsrpip)
 
 %%对数据长度进行补零或溢出删除
 SAMPLE_LENGTH = 30720;                  % 样点数30.72Msps * 1ms
@@ -49,7 +49,7 @@ test_Get_IQ  = uint8(hex2dec({'00','00','99','bb', '66','01','00','01',  '00','8
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%创建UDP对象
-udp_obj = udpport("datagram","LocalHost",pcip,"LocalPort",12345,"Timeout",15);
+udp_obj = udpport("datagram","LocalPort",12345,"Timeout",15);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%发送配置命令
