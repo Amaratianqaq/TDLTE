@@ -48,30 +48,28 @@ test_Get_IQ  = uint8(hex2dec({'00','00','99','bb', '66','01','00','01',  '00','8
 %test_Get_IQ  = uint8(hex2dec({'00','00','99','bb', '66','01','00','03',  '00','60','00','F0',  '00','00','00','00',  '00','00','00','00'}));%01 采集时隙号，0000 分频，0060 包的数量96，00F0 包的大小240（实际接收字节数为配置值乘以4）
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%创建UDP对象，并打开
-udp_obj = udp(xsrpip,13345,'LocalHost',pcip,'LocalPort',12345,'TimeOut',15,'OutputBufferSize',61440,'InputBufferSize',61440*10); %#ok<UDPP>
-udp_obj.Timeout=15;
-fopen(udp_obj);
+%%创建UDP对象
+udp_obj = udpport("datagram","LocalHost",pcip,"LocalPort",12345,"Timeout",15,"OutputBufferSize",61440);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%发送配置命令
-fwrite(udp_obj, test_set_sync_clock, 'uint8');
-fwrite(udp_obj, test_Set_router,  'uint8');
-fwrite(udp_obj, test_set_delay_system, 'uint8');
-fwrite(udp_obj, test_tx_command, 'uint8');
-fwrite(udp_obj, test_Send_IQ, 'uint8');
+write(udp_obj, test_set_sync_clock, "uint8",xsrpip,13345);
+write(udp_obj, test_Set_router,  "uint8",xsrpip,13345);
+write(udp_obj, test_set_delay_system, "uint8",xsrpip,13345);
+write(udp_obj, test_tx_command, "uint8",xsrpip,13345);
+write(udp_obj, test_Send_IQ, "uint8",xsrpip,13345);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%发送已调数据
 SEND_PACKET_LENGTH = 512;   %发送UDP包长度，数据为U16，所以每个UDP包发送字节数数为512*2，
 for pn = 1:fix(SAMPLE_LENGTH*2/SEND_PACKET_LENGTH)
-    fwrite(udp_obj, dataIQ(1,((pn-1)*SEND_PACKET_LENGTH+1) : (pn*SEND_PACKET_LENGTH)), 'uint16');
+    write(udp_obj, dataIQ(1,((pn-1)*SEND_PACKET_LENGTH+1) : (pn*SEND_PACKET_LENGTH)), "uint16",xsrpip,13345);
 end
 %fwrite(udp_obj, dataIQ(1,(pn*SEND_PACKET_LENGTH+1 ): (SAMPLE_LENGTH*2)),'uint16');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%发送采集（接收）数据启动命令
-fwrite(udp_obj, test_Get_IQ, 'uint8');
+write(udp_obj, test_Get_IQ, "uint8",xsrpip,13345);
 
 %% 采集变量初始化
 RECV_PACKET_LENGTH = 240*4;                         %接收包字节数。大小为配置值乘以4。
@@ -88,7 +86,8 @@ recvInd = 1;
 data_byte_c = 0;
 while recvInd == 1
     % 从网口读数据
-    [udp_data,count] = fread(udp_obj,RECV_PACKET_LENGTH);
+    udp_data = read(udp_obj,RECV_PACKET_LENGTH,"uint8");
+    count = length(udp_data);
     %接收数据拼接
     for pj = 1 : count
         udp_data_rr0(data_byte_c+pj) = udp_data(pj);
@@ -102,7 +101,6 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%关闭UDP对象
-fclose(udp_obj);
 delete(udp_obj);
 clear udp_obj;
 
