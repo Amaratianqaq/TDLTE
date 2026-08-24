@@ -49,7 +49,7 @@ test_Get_IQ  = uint8(hex2dec({'00','00','99','bb', '66','01','00','01',  '00','8
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%创建UDP对象，并打开
-udp_obj = udp(xsrpip,13345,'LocalHost',pcip,'LocalPort',12345,'TimeOut',15,'OutputBufferSize',61440,'InputBufferSize',61440*10); %#ok<UDPP>
+udp_obj = udp(xsrpip,13344,'LocalHost',pcip,'LocalPort',12345,'TimeOut',15,'OutputBufferSize',61440,'InputBufferSize',61440*10); %#ok<UDPP>
 udp_obj.Timeout=15;
 fopen(udp_obj);
 
