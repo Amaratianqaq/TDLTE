@@ -114,13 +114,17 @@ set(f,'HandleVisibility','on');
         plot(axRxDen, t(dec), real(rxDen(dec)), 'b', t(dec), imag(rxDen(dec)), 'r');
         xlabel(axRxDen,'us'); legend(axRxDen,{'I','Q'},'Location','best');
 
-        %% 频谱对比
+        %% 频谱对比 (各自归一化到峰值0dB, 消除TX/RX幅度尺度差异)
         [fA, mA] = specMag(txIQ,  Fs);
         [fB, mB] = specMag(rxIQ,  Fs);
         [fC, mC] = specMag(rxDen, Fs);
+        mA = mA - max(mA);
+        mB = mB - max(mB);
+        mC = mC - max(mC);
         plot(axSpec, fA/1e6, mA, 'g', fB/1e6, mB, 'b', fC/1e6, mC, 'r');
-        xlabel(axSpec,'MHz'); legend(axSpec,{'Tx','Rx原始','Rx去噪'},'Location','best');
-        xlim(axSpec,[-15.36 15.36]);
+        xlabel(axSpec,'MHz'); ylabel(axSpec,'相对dB');
+        legend(axSpec,{'Tx','Rx原始','Rx去噪'},'Location','best');
+        xlim(axSpec,[-15.36 15.36]); ylim(axSpec,[-70 5]);
 
         %% 真实/加载模式: 相关与定时信息 (先对齐, 供后续星座图使用)
         procIQ = rxIQ;
