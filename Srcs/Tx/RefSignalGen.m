@@ -112,8 +112,8 @@ end
 
 function fgh = groupHoppingPattern(prm)
 % 组跳转样式: fgh(ns) = [sum_{i=0}^{7} c(8*ns + i)*2^i] mod 30
-% c 为 Gold 序列, 初始化 c_init 与 PUSCH 序列移位样式相关
-c = GoldSeq(8 * 2, 0);
+% c 为 Gold 序列, c_init = floor(N_ID^cell/30) (36.211 5.5.1.3)
+c = GoldSeq(8 * 2, floor(prm.CellID / 30));
 fgh = 0;
 for i = 0:7
     fgh = fgh + c(8 * prm.NSlot + i + 1) * 2^i;
@@ -123,7 +123,8 @@ end
 
 function v = sequenceHoppingPattern(prm)
 % 序列跳转: v = c(ns), c 为 Gold 序列 (需 >=6RB 才启用)
-c = GoldSeq(1, 0);
+% c_init = floor(N_ID^cell/30) (36.211 5.5.1.4); 生成2位覆盖时隙0/1
+c = GoldSeq(2, floor(prm.CellID / 30));
 v = c(prm.NSlot + 1);
 end
 

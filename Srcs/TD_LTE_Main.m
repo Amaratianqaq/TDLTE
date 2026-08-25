@@ -23,8 +23,13 @@ pcip   = '192.168.1.180';
 xsrpip = '192.168.1.166';
 rxIQ   = OFDM_RFLoopback(txIQ, pcip, xsrpip);
 
-%% 4. 接收端: 解调并校验
-[bits, crcOK] = OFDM_RxMain(rxIQ, prm);
+%% 4. 接收端: 时域同步(频偏搜索+互相关定时) + 解调并校验
+% 利用已知发送信号txIQ做稳健同步 (syncLTE): 校正帧起点偏移与载波频偏。
+% 硬件环回存在未知延迟与频偏, 跳过此步会导致OFDM符号错位、解调全乱。
+[rxSync, rho, cfoHz, delay] = syncLTE(rxIQ, txIQ, prm);
+fprintf('同步: 对齐后互相关rho=%.4f, 频偏=%.1f Hz, 帧偏移=%d 样点\n', ...
+    rho, cfoHz, delay);
+[bits, crcOK] = OFDM_RxMain(rxSync, prm);
 
 %% 5. 结果输出
 fprintf('CRC校验结果: %s\n', mat2str(crcOK));

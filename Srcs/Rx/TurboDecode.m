@@ -38,10 +38,13 @@ tailPar2 = [r1(K+3); r0(K+4); r2(K+4)];   % 编码器2校验尾
 Le21 = zeros(K, 1);  % SISO2输出的外信息 -> 解交织 -> SISO1的先验
 
 %% 迭代译码
+Le1 = zeros(K, 1);                        % SISO1输出外信息 (最后用于判决)
 for iter = 1:maxIter
-    % SISO1: 系统比特r0, 校验比特r1, 先验信息Le21
+    La1 = Le21;                            % SISO1输入先验 (保存用于最终判决)
+
+    % SISO1: 系统比特r0, 校验比特r1, 先验信息La1
     % 尾比特(3个尾步)参与trellis递推, 提供尾部约束(终止状态0)
-    Le1 = sisoLogMap([r0(1:K); tailSys1], [r1(1:K); tailPar1], Le21, K);
+    Le1 = sisoLogMap([r0(1:K); tailSys1], [r1(1:K); tailPar1], La1, K);
 
     % 交织: SISO1的外信息交织后作为SISO2的先验
     Le12 = Le1(piIdx + 1);
@@ -55,8 +58,8 @@ for iter = 1:maxIter
 end
 
 %% 最终判决
-% LLR = 系统比特 + 先验信息 + 外信息, LLR>0 判为1
-L = r0(1:K) + Le21;
+% 总LLR = 系统比特 + SISO1输入先验 + SISO1输出外信息 (36.212 Log-MAP)
+L = r0(1:K) + La1 + Le1;
 decoded = double(L > 0);
 
 %% CRC校验 (如果有CRC24B)
