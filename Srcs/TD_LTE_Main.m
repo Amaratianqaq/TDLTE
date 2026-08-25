@@ -15,7 +15,10 @@ prm = GetLTEParams();
 %% 2. 发送端: 生成时域IQ信号
 txIQ = OFDM_TxMain(prm);
 
-%% 3. RF环回: 通过XSRP平台收发
+%% 3. RF环回: 通过XSRP平台收发 (TX1/RX1)
+% 使用TX1/RX1: 上位机 发射通道=TxCh1、接收通道=RxCh1, 天线接 TX1/RX1。
+% 如需切换TX2/RX2: 上位机改 TxCh2/RxCh2、天线接TX2/RX2,
+% 并把第6参数rxCh改为2 (修改Get_IQ命令第2字节, 该字节含义为推测)。
 pcip   = '192.168.1.180';
 xsrpip = '192.168.1.166';
 rxIQ   = OFDM_RFLoopback(txIQ, pcip, xsrpip);

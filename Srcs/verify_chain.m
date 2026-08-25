@@ -61,6 +61,9 @@ allOK = allOK && pass;
 
 fprintf('\n全部通过: %s\n', mat2str(allOK));
 
+%% 记录结果到日志
+logResult('verify_chain', struct('allOK',allOK));
+
 %% 局部函数: 三元条件 (兼容老版本MATLAB)
 function r = ternary(cond, a, b)
 if cond

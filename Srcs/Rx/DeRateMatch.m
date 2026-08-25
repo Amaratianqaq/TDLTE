@@ -1,7 +1,7 @@
 function out = DeRateMatch(bits, K, C, G, Qm, NL, rvidx)
 % DeRateMatch - 解速率匹配 (单个码块, 3GPP 36.212 5.1.4.1 逆过程)
 % 输入:
-%   bits  - 接收bit列向量 (硬判决 {0,1}, 长度E)
+%   bits  - 接收LLR列向量 (软信息, 长度E, 由DemodulateSoft输出)
 %   K     - 码块长度
 %   C     - 码块总数
 %   G     - 总可用bit数
@@ -10,11 +10,12 @@ function out = DeRateMatch(bits, K, C, G, Qm, NL, rvidx)
 %   rvidx - 冗余版本 (0~3)
 % 输出:
 %   out   - 解速率匹配后LLR矩阵 (3列 [d0 d1 d2], 每列 D=K+4)
-%           被发送位置: 0->-1, 1->+1; 被打孔位置: 0 (译码时按擦除处理)
+%           发送位=接收LLR原值, 打孔位/NULL位=0 (译码时按擦除处理)
 %
 % 算法: RateMatch的逆过程
 %   1. 根据rv_idx确定起始位置k0
-%   2. 重建循环缓冲区的NULL(哑元)位置, 将接收bit从k0起填入非NULL位置
+%   2. 重建循环缓冲区的NULL(哑元)位置, 将接收LLR从k0起填入非NULL位置
+%      (重复位LLR求和 = 软合并)
 %   3. 分离3路, 反子块交织, 去除NULL, 得到3路LLR
 
 D = K + 4;
@@ -49,15 +50,19 @@ w(Kpi+1:2:end-1) = v(2, :);
 w(Kpi+2:2:end)   = v(3, :);
 w(w == 0) = NaN;                        % 数据位(0)转为未填充标记
 
-% --- 步骤2: 将接收bit从k0起填入非NULL位置 ---
-% 注: 当E大于循环缓冲非NULL位数(比特重复场景)时, 同一位置会被写入
-% 多次, 发送端也是循环重复读取, 故此处允许覆盖写入 (与发送端对称)
+% --- 步骤2: 将接收LLR从k0起填入非NULL位置 (重复位软合并=求和) ---
+filled = false(1, Ncb);
 count = 0;
 j = 0;
 while count < E
     pos = mod(k0 + j, Ncb) + 1;
     if w(pos) ~= -1                         % 非NULL位置 (NULL=-1)
-        w(pos) = bits(count + 1);
+        if filled(pos)
+            w(pos) = w(pos) + bits(count + 1);   % 重复: LLR求和(软合并)
+        else
+            w(pos) = bits(count + 1);
+            filled(pos) = true;
+        end
         count = count + 1;
     end
     j = j + 1;
@@ -86,7 +91,7 @@ for k = 0:Kpi-1
     y3(r * Ccol + P(j+1) + 1) = v3_raw(k+1);
 end
 
-% --- 步骤5: 去除NULL, 硬判决bit转LLR (打孔位保持0=擦除) ---
+% --- 步骤5: 去除NULL, 输出LLR (打孔位保持0=擦除) ---
 d0 = y1(ND+1:end);
 d1 = y2(ND+1:end);
 d2 = y3(ND+1:end);
@@ -96,7 +101,7 @@ p2 = isnan(d2);
 d0(isnan(d0)) = 0;
 d1(isnan(d1)) = 0;
 d2(isnan(d2)) = 0;
-out = [2*d0(:) - 1, 2*d1(:) - 1, 2*d2(:) - 1];
+out = [d0(:), d1(:), d2(:)];
 out(p0, 1) = 0;                             % 打孔位按擦除(0)处理
 out(p1, 2) = 0;
 out(p2, 3) = 0;

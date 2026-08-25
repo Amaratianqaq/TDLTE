@@ -1,10 +1,11 @@
 function [bits, crcOK] = OFDM_RxMain(rxIQ, prm)
 % OFDM_RxMain - 接收端总入口, 串联全部接收链路模块
 % 处理链路 (按调用顺序):
-%   rxIQ -> OFDMDemod(去CP+FFT) -> ChanEst(信道估计) -> Equalize(均衡)
-%        -> ExtractData(提取数据) -> Demodulate(解调) -> Descramble(解扰)
-%        -> DeRateMatch(解速率匹配) -> TurboDecode(Turbo译码)
+%   rxIQ -> OFDMDemod(去CP+FFT) -> ChanEst(信道估计) -> Equalize(MMSE均衡)
+%        -> ExtractData(提取数据) -> DemodulateSoft(软判决→LLR) -> DescrambleSoft(解扰)
+%        -> DeRateMatch(解速率匹配, LLR域) -> TurboDecode(Turbo译码)
 %        -> CodeBlockDeSeg(码块去分段+解CRC) -> bits, crcOK
+% 注: 相比旧硬判决链, 软判决+MMSE+更多Turbo迭代可带来2~4dB增益 (弱信号场景)。
 % 输入:
 %   rxIQ - 接收时域复数IQ信号 (1ms子帧, 30720样点)
 %   prm  - 参数结构体 (由GetLTEParams返回)
@@ -21,17 +22,37 @@ rxGrid = OFDMDemod(rxIQ, prm);
 %% 3) 信道估计: 基于导频的LS估计 + 插值
 H = ChanEst(rxGrid, rs0, rs1, prm);
 
-%% 4) 均衡: ZF方法
-eqGrid = Equalize(rxGrid, H, 'ZF');
+%% 4) 均衡: MMSE (噪声方差由导频残余估计)
+pilotIdx1 = prm.PilotSymbols(1) + 1;
+pilotIdx2 = prm.PilotSymbols(2) + 1;
+residual = [abs(rxGrid(:,pilotIdx1) - H(:,pilotIdx1).*rs0).^2; ...
+            abs(rxGrid(:,pilotIdx2) - H(:,pilotIdx2).*rs1).^2];
+noiseVar = max(mean(residual), 1e-9);     % 防除零
+eqGrid = Equalize(rxGrid, H, 'MMSE', noiseVar);
 
 %% 5) 提取数据符号: 去除导频列
 dataSyms = ExtractData(eqGrid, prm);
 
-%% 6) 解调: 硬判决
-rxBits = Demodulate(dataSyms, prm.Modulation);
+%% 6) 软判决解调: 输出比特LLR (max-log)
+rxLLR = DemodulateSoft(dataSyms, prm.Modulation, noiseVar);
 
-%% 7) 解扰
-descrambled = Descramble(rxBits, prm);
+%% 6.5) 频域去干扰: 置零低频子载波LLR (设备0~1MHz确定性干扰, 按擦除处理)
+% DC位于网格行601; 子载波间隔15kHz。置零 |f|<=NotchMHz 的行对应的LLR。
+if isfield(prm, 'NotchMHz') && prm.NotchMHz > 0
+    Nsc = prm.NSubc;  Qm = prm.Qm;
+    NsymData = prm.NSym - prm.NPilot;           % 数据符号数 12
+    Nnotch = round(prm.NotchMHz / 0.015);       % 子载波数
+    kNotch = (601 - Nnotch) : (601 + Nnotch);
+    kNotch = kNotch(kNotch >= 1 & kNotch <= Nsc);
+    pos = (kNotch(:) - 1) * Qm;                 % 子载波k在符号内的基位置
+    pos = pos + (0:Qm-1);                        % 该子载波的Qm个bit
+    pos = pos(:);
+    posAll = pos + (0:NsymData-1) * Nsc * Qm;    % 扩展到12个数据符号
+    rxLLR(posAll(:)) = 0;                        % 擦除(0=无信息)
+end
+
+%% 7) 解扰 (LLR域: 乘±1)
+descrambled = DescrambleSoft(rxLLR, prm);
 
 %% 8) 码块分割信息 (接收端独立重算, 与发送端一致)
 tbBits = CRCAttach(zeros(prm.TBsize, 1), '24A');  % 假数据, 仅获取info
