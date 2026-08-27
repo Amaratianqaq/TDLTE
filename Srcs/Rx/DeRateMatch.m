@@ -1,12 +1,8 @@
-function out = DeRateMatch(bits, K, C, G, Qm, NL, rvidx)
+function out = DeRateMatch(bits, K, rvidx)
 % DeRateMatch - 解速率匹配 (单个码块, 3GPP 36.212 5.1.4.1 逆过程)
 % 输入:
-%   bits  - 接收LLR列向量 (软信息, 长度E, 由DemodulateSoft输出)
+%   bits  - 本码块的接收LLR列向量 (长度E, 由调用方按rateMatchEr切好)
 %   K     - 码块长度
-%   C     - 码块总数
-%   G     - 总可用bit数
-%   Qm    - 调制阶数 (2/4/6)
-%   NL    - 层数 (1或2)
 %   rvidx - 冗余版本 (0~3)
 % 输出:
 %   out   - 解速率匹配后LLR矩阵 (3列 [d0 d1 d2], 每列 D=K+4)

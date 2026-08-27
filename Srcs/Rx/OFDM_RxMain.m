@@ -119,7 +119,7 @@ for r = 1:C
     ptr = ptr + E;
 
     % 解速率匹配
-    rmOut = DeRateMatch(cbBits, Kr, C, G, prm.Qm, prm.NL, prm.RV);
+    rmOut = DeRateMatch(cbBits, Kr, prm.RV);
 
     % Turbo译码
     [cbDecoded{r}, ~] = TurboDecode(rmOut, Kr, prm.maxIter);

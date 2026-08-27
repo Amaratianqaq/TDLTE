@@ -70,7 +70,7 @@ for sb = 0:0.5:8
         Kr = Krs(r);
         E = rateMatchEr(G, prm.Qm, prm.NL, segInfo.C, r);
         cbBits = desc(ptr:ptr+E-1); ptr = ptr + E;
-        rmOut = DeRateMatch(cbBits, Kr, segInfo.C, G, prm.Qm, prm.NL, prm.RV);
+        rmOut = DeRateMatch(cbBits, Kr, prm.RV);
         [cbDec{r}, ~] = TurboDecode(rmOut, Kr, prm.maxIter);
     end
     [bitsDec, crcC] = CodeBlockDeSeg(cbDec, segInfo);
