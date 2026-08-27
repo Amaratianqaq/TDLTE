@@ -230,8 +230,8 @@ function [f, m] = specMag(x, Fs)
 x = x(:).' - mean(x);
 N = numel(x);
 X = fft(x, N);
-f = (0:N-1)/N*Fs; f(f>Fs/2) = f(f>Fs/2) - Fs;
-m = 20*log10(abs(X) + eps);
+f = (-N/2 : N/2-1) / N * Fs;         % 单调频率轴: -Fs/2 → +Fs/2 - Fs/N
+m = fftshift(20*log10(abs(X) + eps)); % 幅度按同一顺序重排
 end
 
 function pts = idealConstellation(mode)
