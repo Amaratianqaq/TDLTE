@@ -44,13 +44,13 @@ btnRun  = uicontrol(f,'Style','pushbutton','String','运行','Units','normalized
 % --- 2×2 绘图区 ---
 axTx    = subplot('Position',[0.055 0.505 0.430 0.405]);  title(axTx,'Tx 时域 I/Q (峰值归一化)');
 axRxRaw = subplot('Position',[0.545 0.505 0.430 0.405]);  title(axRxRaw,'Rx 时域 I/Q (峰值归一化)');
-axSpec  = subplot('Position',[0.055 0.130 0.430 0.330]);  title(axSpec,'频谱对比 (相对dB, 已去直流)');
-axCon   = subplot('Position',[0.545 0.130 0.430 0.330]);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
+axSpec  = subplot('Position',[0.055 0.140 0.430 0.320]);  title(axSpec,'频谱对比 (相对dB, 已去直流)');
+axCon   = subplot('Position',[0.545 0.140 0.430 0.320]);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
 grid(axTx,'on'); grid(axRxRaw,'on'); grid(axSpec,'on'); grid(axCon,'on');
 
 % --- 底部信息区 (多行, 不遮挡图表) ---
 txtStatus = uicontrol(f,'Style','text','String','就绪 - 选择模式后点"运行"', ...
-    'Units','normalized','Position',[0.010 0.005 0.980 0.065], ...
+    'Units','normalized','Position',[0.010 0.005 0.980 0.075], ...
     'HorizontalAlignment','left','FontSize',11,'BackgroundColor','w', ...
     'FontName','Microsoft YaHei UI');
 
@@ -75,6 +75,7 @@ set(f,'HandleVisibility','on');
         rng(42);
         txIQ = OFDM_TxMain(prm);
         txIQ = txIQ(:).';
+        rng(42); [txBits, ~] = TBGen(prm);   % 发送参考比特(用于BER, 所有模式共用)
 
         info = struct('mode',modStr,'snr',snr,'crc',[],'rho',[],'off',[],'cfo',[],'ber',[]);
 
@@ -87,9 +88,6 @@ set(f,'HandleVisibility','on');
                 nz  = sqrt(Pn/2) * (randn(1,N) + 1j*randn(1,N));
                 rxIQ = txIQ + nz;
                 info.mode = sprintf('仿真加噪 (SNR=%.0f dB)', snr);
-                % 参考比特用于BER
-                rng(42); [txBits,~] = TBGen(prm);
-                info.ber = 1;   % 占位, 下面覆写
 
             case 2  % 真实环回
                 rxIQ = OFDM_RFLoopback(txIQ, '192.168.1.180', '192.168.1.166');
@@ -157,28 +155,48 @@ set(f,'HandleVisibility','on');
         legend(axCon,{'理想','Rx均衡后'},'Location','best');
         info.crc = crcOK;
 
-        %% 仿真模式补BER
-        if mode == 1
+        %% 统一计算: BER / 每子载波SNR / PAPR (所有模式)
+        try
+            [rxBits, ~] = OFDM_RxMain(procIQ, prm);
+            b = min(numel(txBits), numel(rxBits));
+            info.ber = mean(txBits(1:b) ~= rxBits(1:b));
+        catch
+            info.ber = NaN;
+        end
+        % 每子载波SNR (真实/加载模式; 仿真模式SNR由滑条给定, 不重复计算)
+        if mode == 2 || mode == 3
             try
-                [rxBits, ~] = OFDM_RxMain(rxIQ, prm);
-                b = min(numel(txBits), numel(rxBits));
-                info.ber = mean(txBits(1:b) ~= rxBits(1:b));
+                snrPer = subcarrierSNR(procIQ, txIQ, prm);
+                info.snrAvg = mean(snrPer); info.snrMed = median(snrPer);
             catch
-                info.ber = NaN;
+                info.snrAvg = NaN; info.snrMed = NaN;
             end
         end
+        % RX PAPR 与削波占比 (所有模式)
+        rxr = abs(rxIQ(:));
+        info.papr = max(rxr) / max(sqrt(mean(rxr.^2)), 1e-12);
+        info.clipPct = 100 * mean(rxr > 0.9);
 
         %% 状态文本
-        S = sprintf('模式: %s\n调制: %s  TBsize=%d', info.mode, modStr, prm.TBsize);
-        if mode == 1
-            S = sprintf('%s\nSNR=%.0f dB | CRC=%d | BER=%.4g', S, snr, info.crc, info.ber);
-        else
-            S = sprintf('%s\nCRC(稳健同步+MMSE)=%d', S, info.crc);
-            if isfield(info,'rho'), S = sprintf('%s | 互相关rho=%.3f', S, info.rho); end
-            if isfield(info,'off'), S = sprintf('%s\n帧偏移=%d样点 | 频偏=%.1f Hz', S, info.off, info.cfo); end
-            if isfield(info,'err'), S = sprintf('%s\n同步出错: %s', S, info.err); end
-            if isfield(info,'clip'), S = sprintf('%s\n[警告] %s', S, info.clip); end
+        codeRate = (prm.TBsize + 24) / (prm.NDataSubc * (prm.NSym - prm.NPilot) * prm.Qm);
+        S = sprintf('模式: %s | 调制: %s | TBsize=%d | 码率=%.3f', info.mode, modStr, prm.TBsize, codeRate);
+        S = sprintf('%s\nCRC=%d | BER=%.4g', S, info.crc, info.ber);
+        if isfield(info,'rho') && ~isempty(info.rho)
+            S = sprintf('%s | rho=%.4f', S, info.rho);
+        elseif mode == 1
+            S = sprintf('%s | 仿真SNR=%.0f dB', S, snr);
         end
+        if isfield(info,'snrAvg') && ~isnan(info.snrAvg)
+            S = sprintf('%s\n每子载波SNR: 均值=%.2f dB | 中位=%.2f dB', S, info.snrAvg, info.snrMed);
+        end
+        if isfield(info,'papr')
+            S = sprintf('%s\nPAPR=%.2f | 满幅(>0.9)占比=%.1f%%', S, info.papr, info.clipPct);
+        end
+        if isfield(info,'off') && ~isempty(info.off)
+            S = sprintf('%s | 帧偏移=%d样点 | 频偏=%.1f Hz', S, info.off, info.cfo);
+        end
+        if isfield(info,'err'), S = sprintf('%s\n同步出错: %s', S, info.err); end
+        if isfield(info,'clip'), S = sprintf('%s\n[警告] %s', S, info.clip); end
         set(txtStatus,'String',S);
 
         % 记录结果到日志
