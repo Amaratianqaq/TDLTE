@@ -3,7 +3,7 @@ function [rxSync, rho, cfoHz, delay, phase] = syncLTE(rxIQ, txIQ, prm)
 % 输入:
 %   rxIQ  - 接收信号 (1x30720, 复数)
 %   txIQ  - 发送参考信号 (1x30720)
-%   prm   - 参数结构体 (用 prm.NFFT)
+%   prm   - 参数结构体 (用 prm.NFFT 推导采样率)
 % 输出:
 %   rxSync - 对齐+去频偏后的信号 (与txIQ对齐, 供OFDM_RxMain使用)
 %   rho    - 对齐后的归一化互相关 (信号强度指标)
@@ -11,30 +11,32 @@ function [rxSync, rho, cfoHz, delay, phase] = syncLTE(rxIQ, txIQ, prm)
 %   delay  - 帧起点偏移 (样点, 0=已对齐)
 %   phase  - 对齐信号与参考的公共相位 (rad), 供多帧相干平均时逐帧校正
 %
-% 原理: 两级频偏搜索(±8kHz, 250Hz粗搜→±200Hz细搜), 每档去频偏后与
+% 原理: 两级频偏搜索(粗搜±10kHz/100Hz -> 细搜±150Hz/10Hz), 每档去频偏后与
 %       txIQ 做全滞后互相关, 取峰值最高档; 不依赖CP相关(抗DC/低频干扰)。
+% 注意: 去频偏相位增量必须除以采样率Fs(30.72MHz), 粗搜步进(100Hz)须远
+%       小于相关主瓣宽度1/T(1kHz)才能捕捉到峰值。
 
 r = rxIQ(:).' - mean(rxIQ);
 v = txIQ(:).' - mean(txIQ);
 N  = numel(r);
-NFFT = prm.NFFT;
+Fs = prm.NFFT * 15000;                  % 采样率 = 2048 * 15kHz = 30.72MHz
 n = 0:N-1;
 
-%% 1) 粗频偏搜索 ±8kHz / 250Hz
+%% 1) 粗频偏搜索 ±10kHz / 100Hz
 best = struct('cfo',0,'rho',0,'lag',0);
-grid1 = -8000:250:8000;
+grid1 = -10000:100:10000;
 for k = 1:numel(grid1)
-    rc = r .* exp(-1j*2*pi*grid1(k)*n/NFFT);
+    rc = r .* exp(-1j*2*pi*grid1(k)*n/Fs);
     [rho, lag] = xcorrPeak(rc, v);
     if rho > best.rho
         best = struct('cfo',grid1(k),'rho',rho,'lag',lag);
     end
 end
 
-%% 2) 细频偏搜索 ±200Hz / 25Hz
-grid2 = best.cfo + (-200:25:200);
+%% 2) 细频偏搜索 ±150Hz / 10Hz
+grid2 = best.cfo + (-150:10:150);
 for k = 1:numel(grid2)
-    rc = r .* exp(-1j*2*pi*grid2(k)*n/NFFT);
+    rc = r .* exp(-1j*2*pi*grid2(k)*n/Fs);
     [rho, lag] = xcorrPeak(rc, v);
     if rho > best.rho
         best = struct('cfo',grid2(k),'rho',rho,'lag',lag);
@@ -42,7 +44,7 @@ for k = 1:numel(grid2)
 end
 
 %% 3) 应用: 去频偏 + 循环移位对齐
-rc = r .* exp(-1j*2*pi*best.cfo*n/NFFT);
+rc = r .* exp(-1j*2*pi*best.cfo*n/Fs);
 % xcorr(r,v) 峰值滞后 = rx 中信号相对 tx 的延迟 d (r(i)≈v(i-d))
 % 对齐: rxSync(i) = rc(i+d), 即循环左移 d
 delay = best.lag;

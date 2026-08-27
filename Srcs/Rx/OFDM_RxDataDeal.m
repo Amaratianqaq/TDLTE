@@ -9,15 +9,11 @@ function [rxI, rxQ] = OFDM_RxDataDeal(rawData, freqDiv, dataByteNumb)
 %   rxI - 接收I路数据 (1×30720)
 %   rxQ - 接收Q路数据 (1×30720)
 %
-% 解包逻辑 (与发送端OFDM_RFLoopback.m第34~37行对称):
-%   发送端打包:
-%     I路: x = x * 16  (12bit左移4位, 低4位补0)
-%     Q路: x = b7~b0 空4bits b11~b8 (字节重排)
-%   接收端解包:
-%     freqDiv=1: 每样点4字节 (I路2字节 + Q路2字节)
-%     freqDiv=0: 每样点3字节 (I路12bit + Q路12bit)
-%     I路: 右移4位, 取高12位
-%     Q路: 反向字节重排, 恢复原始12位
+% 解包逻辑 (按设备ADC回传实测格式, 与发送端DAC接口格式不同):
+%   freqDiv=1: 每样点4字节 (I路2字节 + Q路2字节)
+%     I/Q两路格式相同: 高字节为12bit值的低8位, 低字节的低4位为高4位
+%   freqDiv=0: 每样点3字节 (I路12bit + Q路12bit 紧排)
+%   负数按12bit补码还原 (值 > 2047 时减 4096)
 
 SAMPLE_LENGTH = 30720;
 
@@ -57,12 +53,10 @@ for n = 1:numSamples
         q_hi = rawData(idx + 3);
         q_raw = q_lo + q_hi * 256;  % 小端序组成uint16
 
-        % I路解包: 右移4位, 取高12位
-        i_raw = bitshift(i_raw, -4);
+        % I路解包: 与Q路同格式 (高字节为低8位, 低字节的低4位为高4位)
+        i_raw = bitshift(i_raw, -8) + bitand(i_raw, 15) * 256;
 
-        % Q路解包: 反向字节重排
-        % 发送端: Q路 = 高字节b7~b0, 低字节[空4bits b11~b8]
-        % 接收端还原: 提取高8位和低字节的低4位
+        % Q路解包: 高字节为低8位, 低字节的低4位为高4位
         q_raw = bitshift(q_raw, -8) + bitand(q_raw, 15) * 256;
     end
 

@@ -22,11 +22,11 @@ if isfield(prm, 'NotchMHz') && prm.NotchMHz > 0
     Nnotch = round(prm.NotchMHz / 0.015);       % 子载波数
     kNotch = (601 - Nnotch) : (601 + Nnotch);
     kNotch = kNotch(kNotch >= 1 & kNotch <= prm.NSubc);
-    notchMask = false(prm.NSubc, 1);
-    notchMask(kNotch) = true;
 else
-    notchMask = false(prm.NSubc, 1);
+    kNotch = [];                                 % 关闭时为空, 避免后续引用未定义
 end
+notchMask = false(prm.NSubc, 1);
+notchMask(kNotch) = true;
 cleanRows = ~notchMask;
 
 %% 2) 生成本地参考信号 (接收端独立生成, 与发送端一致)
@@ -58,7 +58,7 @@ else
     residual = [abs(rxGrid(cleanRows,pilotIdx1) - H(cleanRows,pilotIdx1).*rs0(cleanRows)).^2; ...
                 abs(rxGrid(cleanRows,pilotIdx2) - H(cleanRows,pilotIdx2).*rs1(cleanRows)).^2];
     % 中位数+排除污染区: 设备低频干扰不再抬高噪声方差
-    noiseVar = max(median(residual), 1e-9);     % 防除零
+    noiseVar = max(median(residual(:)), 1e-9);  % 标量中位数, 防除零
 end
 eqGrid = Equalize(rxGrid, H, 'MMSE', noiseVar);
 % 均衡方式可选: prm.eqMethod='ZF'/'MMSE' (默认MMSE)
