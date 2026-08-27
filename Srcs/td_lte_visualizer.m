@@ -1,11 +1,11 @@
 function td_lte_visualizer()
 % td_lte_visualizer - TD-LTE Tx/Rx 信号可视化界面
 % 显示内容:
-%   (1) Tx 时域 I/Q          (3) Rx 去噪声时域 I/Q
-%   (2) Rx 原始时域 I/Q      (4) 频谱对比 (Tx / Rx原始 / Rx去噪)
-%   (5) 星座图: 理想点 + Rx均衡后符号     (6) 处理信息(CRC/相关/定时/频偏)
+%   (1) Tx 时域 I/Q          (3) 频谱对比 (Tx / Rx原始, 相对dB)
+%   (2) Rx 原始时域 I/Q      (4) 星座图: 理想点 + Rx均衡后符号
+%                            (5) 处理信息(CRC/相关/定时/频偏)
 % 运行模式:
-%   仿真加噪 : txIQ + 高斯白噪声(SNR可调), 验证链路与去噪效果
+%   仿真加噪 : txIQ + 高斯白噪声(SNR可调), 验证链路与噪声影响
 %   真实环回 : 调用 OFDM_RFLoopback 走XSRP硬件, 自动做定时对齐+去频偏
 %   加载数据 : 读取包含 txIQ/rxIQ 的 .mat (如 hw_capture.mat)
 % 使用: 在MATLAB中运行 td_lte_visualizer
@@ -13,7 +13,6 @@ function td_lte_visualizer()
 addpath(genpath(fileparts(mfilename('fullpath'))));   % 添加 Srcs/Tx/Rx 路径
 
 Fs = 30.72e6;          % 采样率 30.72MHz
-BW = 9.5e6;            % 去噪带宽: 保留信号带 ±9.5MHz (1200/2048*30.72≈±9MHz)
 
 %% ==================== 界面 ====================
 f = figure('Name','TD-LTE Tx/Rx 信号可视化','NumberTitle','off','MenuBar','none', ...
@@ -37,15 +36,14 @@ uicontrol(f,'Style','text','String','状态:','Position',[730 845 40 20],'Horizo
 txtStatus = uicontrol(f,'Style','text','String','就绪 - 选择模式后点"运行"', ...
     'Position',[775 838 700 40],'HorizontalAlignment','left');
 
-% --- 6 个绘图区 ---
+% --- 5 个绘图区 ---
 axTx    = subplot(2,3,1,'Parent',f);  title(axTx,'Tx 时域 I/Q');
 axRxRaw = subplot(2,3,2,'Parent',f);  title(axRxRaw,'Rx 原始时域 I/Q');
-axRxDen = subplot(2,3,3,'Parent',f);  title(axRxDen,'Rx 去噪声时域 I/Q (带通+去直流)');
-axSpec  = subplot(2,3,4,'Parent',f);  title(axSpec,'频谱对比 (dB)');
-axCon   = subplot(2,3,5,'Parent',f);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
-axInfo  = subplot(2,3,6,'Parent',f);  title(axInfo,'处理信息');
+axSpec  = subplot(2,3,3,'Parent',f);  title(axSpec,'频谱对比 (相对dB)');
+axCon   = subplot(2,3,4,'Parent',f);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
+axInfo  = subplot(2,3,5,'Parent',f);  title(axInfo,'处理信息');
 axis(axInfo,'off');
-grid(axTx,'on'); grid(axRxRaw,'on'); grid(axRxDen,'on'); grid(axSpec,'on'); grid(axCon,'on');
+grid(axTx,'on'); grid(axRxRaw,'on'); grid(axSpec,'on'); grid(axCon,'on');
 
 set(btnRun,'Callback',@(s,e) runAll());
 set(f,'HandleVisibility','on');
@@ -99,9 +97,6 @@ set(f,'HandleVisibility','on');
                 info.mode = sprintf('加载 %s', fn);
         end
 
-        %% 去噪声 (FFT带通保留信号带 + 去直流)
-        rxDen = denoiseBP(rxIQ, Fs, BW);
-
         %% 绘制时域 (每4点抽1显示)
         t = (0:numel(txIQ)-1)/Fs * 1e6;   % us
         dec = 1:4:numel(txIQ);
@@ -111,19 +106,14 @@ set(f,'HandleVisibility','on');
         plot(axRxRaw, t(dec), real(rxIQ(dec)), 'b', t(dec), imag(rxIQ(dec)), 'r');
         xlabel(axRxRaw,'us'); legend(axRxRaw,{'I','Q'},'Location','best');
 
-        plot(axRxDen, t(dec), real(rxDen(dec)), 'b', t(dec), imag(rxDen(dec)), 'r');
-        xlabel(axRxDen,'us'); legend(axRxDen,{'I','Q'},'Location','best');
-
         %% 频谱对比 (各自归一化到峰值0dB, 消除TX/RX幅度尺度差异)
         [fA, mA] = specMag(txIQ,  Fs);
         [fB, mB] = specMag(rxIQ,  Fs);
-        [fC, mC] = specMag(rxDen, Fs);
         mA = mA - max(mA);
         mB = mB - max(mB);
-        mC = mC - max(mC);
-        plot(axSpec, fA/1e6, mA, 'g', fB/1e6, mB, 'b', fC/1e6, mC, 'r');
+        plot(axSpec, fA/1e6, mA, 'g', fB/1e6, mB, 'b');
         xlabel(axSpec,'MHz'); ylabel(axSpec,'相对dB');
-        legend(axSpec,{'Tx','Rx原始','Rx去噪'},'Location','best');
+        legend(axSpec,{'Tx','Rx原始'},'Location','best');
         xlim(axSpec,[-15.36 15.36]); ylim(axSpec,[-70 5]);
 
         %% 真实/加载模式: 相关与定时信息 (先对齐, 供后续星座图使用)
@@ -179,21 +169,11 @@ set(f,'HandleVisibility','on');
             'ber',berL,'off',offL,'cfo',cfoL,'mode',info.mode));
 
         % 保存当前结果便于复查
-        save('viz_result.mat','txIQ','rxIQ','rxDen','dataSyms','info');
+        save('viz_result.mat','txIQ','rxIQ','dataSyms','info');
     end
 end
 
 %% ==================== 工具函数 ====================
-function y = denoiseBP(x, Fs, bw)
-% FFT带通: 保留 |f|<=bw 的频带并去直流, 再IFFT
-N = numel(x);
-X = fft(x(:).', N);
-f = (0:N-1)/N*Fs; f(f>Fs/2) = f(f>Fs/2) - Fs;
-X(abs(f) > bw) = 0;
-X(1) = 0;                       % 去直流
-y = ifft(X);
-end
-
 function [f, m] = specMag(x, Fs)
 N = numel(x);
 X = fft(x(:).', N);

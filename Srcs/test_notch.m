@@ -21,8 +21,8 @@ else
     error('没有可用数据: 先运行 rx_accum 或 verify_hw_link 生成 .mat 再测');
 end
 
-fprintf('\n==== NotchMHz 扫描 (软判决+MMSE+Turbo12) ====\n');
-nmList = [0 0.5 1.0 1.5 2.0];
+fprintf('\n==== NotchMHz 扫描 (软判决+MMSE+Turbo12+污染区隔离) ====\n');
+nmList = [0 0.5 1.0 1.5 2.0 2.5 3.0];
 crcList = NaN(size(nmList));
 for ni = 1:numel(nmList)
     nm = nmList(ni);

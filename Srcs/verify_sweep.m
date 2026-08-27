@@ -42,7 +42,8 @@ combos = {
     'txB+slot03', txCmdB, slot03;
     };
 
-fprintf('==== 命令组合扫描 (伪随机PN图案) ====\n');
+fprintf('==== 命令组合扫描 (伪随机PN图案, 用新同步syncLTE判据) ====\n');
+prm = GetLTEParams();
 best = struct('name','','rho',0);
 for k = 1:size(combos,1)
     name = combos{k,1};
@@ -61,6 +62,9 @@ for k = 1:size(combos,1)
     iv(iv>2047) = iv(iv>2047) - 4096;
     qv(qv>2047) = qv(qv>2047) - 4096;
     z = iv + 1j*qv;
+    % 新同步rho: 频偏搜索+互相关定时 (抗频偏/定时, 旧算法会被频偏掩盖)
+    [~, rhoSync] = syncLTE(z, zt, prm);
+    % 旧判据(无频偏校正)保留作对照
     c = xcorr(z, zt);
     [cmax, ~] = max(abs(c));
     rho = cmax / (sqrt(sum(abs(z).^2)) * sqrt(sum(abs(zt).^2)));
@@ -72,9 +76,10 @@ for k = 1:size(combos,1)
     tb = tb(1:N*4);
     [cb, ~] = max(abs(xcorr(rb-mean(rb), tb-mean(tb))));
     rhoB = cb / sqrt(sum((rb-mean(rb)).^2) * sum((tb-mean(tb)).^2));
-    fprintf('%-12s rho=%.4f rhoC=%.4f rhoB=%.4f std=%.2f\n', name, rho, rhoC, rhoB, std(rb));
-    if rho > best.rho
-        best = struct('name', name, 'rho', rho);
+    fprintf('%-12s rhoSync=%.4f (旧rho=%.4f rhoC=%.4f rhoB=%.4f std=%.2f)\n', ...
+        name, rhoSync, rho, rhoC, rhoB, std(rb));
+    if rhoSync > best.rho
+        best = struct('name', name, 'rho', rhoSync);
     end
     save(sprintf('sweep_%s.mat', name), 'rxBytes');
 end

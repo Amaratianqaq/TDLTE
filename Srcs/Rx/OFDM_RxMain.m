@@ -16,19 +16,55 @@ function [bits, crcOK] = OFDM_RxMain(rxIQ, prm)
 %% 1) OFDM解调: 去CP + FFT + 子载波提取
 rxGrid = OFDMDemod(rxIQ, prm);
 
+%% 1.5) 污染区掩码: 设备低频干扰所在的子载波行 (提前计算, 供噪声估计/平滑/擦除共用)
+% DC位于网格行601; 子载波间隔15kHz; 干扰实测集中在 DC±2.25MHz (行451~750)。
+if isfield(prm, 'NotchMHz') && prm.NotchMHz > 0
+    Nnotch = round(prm.NotchMHz / 0.015);       % 子载波数
+    kNotch = (601 - Nnotch) : (601 + Nnotch);
+    kNotch = kNotch(kNotch >= 1 & kNotch <= prm.NSubc);
+    notchMask = false(prm.NSubc, 1);
+    notchMask(kNotch) = true;
+else
+    notchMask = false(prm.NSubc, 1);
+end
+cleanRows = ~notchMask;
+
 %% 2) 生成本地参考信号 (接收端独立生成, 与发送端一致)
 [rs0, rs1] = RefSignalGen(prm);
 
-%% 3) 信道估计: 基于导频的LS估计 + 插值
-H = ChanEst(rxGrid, rs0, rs1, prm);
+%% 3) 信道估计: 基于导频的LS估计 + 插值 (prm.idealChan=true 时用理想信道H=1)
+if isfield(prm, 'idealChan') && prm.idealChan
+    H = ones(prm.NSubc, prm.NSym);
+else
+    H = ChanEst(rxGrid, rs0, rs1, prm);
+    % 频域平滑: 降低LS估计噪声; 污染区(notch)行不参与平滑, 防止垃圾H扩散到干净区
+    if isfield(prm, 'chanSmooth') && prm.chanSmooth > 1
+        for l = 1:prm.NSym
+            h = H(:, l);
+            h(notchMask) = NaN;                        % 污染区置NaN
+            h = movmean(h, prm.chanSmooth, 'omitnan'); % 只按干净行平滑
+            h(notchMask) = H(notchMask, l);            % 恢复污染区原值
+            H(:, l) = h;
+        end
+    end
+end
 
-%% 4) 均衡: MMSE (噪声方差由导频残余估计)
+%% 4) 均衡: MMSE (噪声方差由导频残余估计; 仅用干净行; prm.noiseVarOverride 可覆盖)
 pilotIdx1 = prm.PilotSymbols(1) + 1;
 pilotIdx2 = prm.PilotSymbols(2) + 1;
-residual = [abs(rxGrid(:,pilotIdx1) - H(:,pilotIdx1).*rs0).^2; ...
-            abs(rxGrid(:,pilotIdx2) - H(:,pilotIdx2).*rs1).^2];
-noiseVar = max(mean(residual), 1e-9);     % 防除零
+if isfield(prm, 'noiseVarOverride') && ~isempty(prm.noiseVarOverride)
+    noiseVar = max(prm.noiseVarOverride, 1e-12);
+else
+    residual = [abs(rxGrid(cleanRows,pilotIdx1) - H(cleanRows,pilotIdx1).*rs0(cleanRows)).^2; ...
+                abs(rxGrid(cleanRows,pilotIdx2) - H(cleanRows,pilotIdx2).*rs1(cleanRows)).^2];
+    % 中位数+排除污染区: 设备低频干扰不再抬高噪声方差
+    noiseVar = max(median(residual), 1e-9);     % 防除零
+end
 eqGrid = Equalize(rxGrid, H, 'MMSE', noiseVar);
+% 均衡方式可选: prm.eqMethod='ZF'/'MMSE' (默认MMSE)
+if isfield(prm, 'eqMethod') && ~isempty(prm.eqMethod) && strcmpi(prm.eqMethod, 'ZF')
+    eqGrid = Equalize(rxGrid, H, 'ZF');
+end
 
 %% 5) 提取数据符号: 去除导频列
 dataSyms = ExtractData(eqGrid, prm);
@@ -36,14 +72,10 @@ dataSyms = ExtractData(eqGrid, prm);
 %% 6) 软判决解调: 输出比特LLR (max-log)
 rxLLR = DemodulateSoft(dataSyms, prm.Modulation, noiseVar);
 
-%% 6.5) 频域去干扰: 置零低频子载波LLR (设备0~1MHz确定性干扰, 按擦除处理)
-% DC位于网格行601; 子载波间隔15kHz。置零 |f|<=NotchMHz 的行对应的LLR。
-if isfield(prm, 'NotchMHz') && prm.NotchMHz > 0
+%% 6.5) 频域去干扰: 置零污染区子载波LLR (按擦除处理)
+if any(notchMask)
     Nsc = prm.NSubc;  Qm = prm.Qm;
     NsymData = prm.NSym - prm.NPilot;           % 数据符号数 12
-    Nnotch = round(prm.NotchMHz / 0.015);       % 子载波数
-    kNotch = (601 - Nnotch) : (601 + Nnotch);
-    kNotch = kNotch(kNotch >= 1 & kNotch <= Nsc);
     pos = (kNotch(:) - 1) * Qm;                 % 子载波k在符号内的基位置
     pos = pos + (0:Qm-1);                        % 该子载波的Qm个bit
     pos = pos(:);
