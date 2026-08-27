@@ -16,7 +16,7 @@ Fs = 30.72e6;          % 采样率 30.72MHz
 
 %% ==================== 界面 ====================
 f = figure('Name','TD-LTE Tx/Rx 信号可视化','NumberTitle','off','MenuBar','none', ...
-    'Position',[40 40 1520 940], 'Color',[0.94 0.94 0.94]);
+    'Position',[20 40 1700 940], 'Color',[0.94 0.94 0.94]);
 
 % --- 顶部控制条 (统一高度/字体, 整齐排列) ---
 uicontrol(f,'Style','text','String','运行模式','Units','normalized', ...
@@ -41,16 +41,19 @@ btnRun  = uicontrol(f,'Style','pushbutton','String','运行','Units','normalized
     'Position',[0.615 0.945 0.090 0.045],'FontSize',14,'FontWeight','bold', ...
     'BackgroundColor',[0.20 0.62 0.35],'ForegroundColor','w');
 
-% --- 2×2 绘图区 ---
-axTx    = subplot('Position',[0.055 0.505 0.430 0.405]);  title(axTx,'Tx 时域 I/Q (峰值归一化)');
-axRxRaw = subplot('Position',[0.545 0.505 0.430 0.405]);  title(axRxRaw,'Rx 时域 I/Q (峰值归一化)');
-axSpec  = subplot('Position',[0.055 0.140 0.430 0.320]);  title(axSpec,'频谱对比 (相对dB, 已去直流)');
-axCon   = subplot('Position',[0.545 0.140 0.430 0.320]);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
+% --- 2×2 绘图区 (左侧) ---
+axTx    = subplot('Position',[0.040 0.50 0.330 0.410]);  title(axTx,'Tx 时域 I/Q (峰值归一化)');
+axRxRaw = subplot('Position',[0.390 0.50 0.330 0.410]);  title(axRxRaw,'Rx 时域 I/Q (峰值归一化)');
+axSpec  = subplot('Position',[0.040 0.06 0.330 0.400]);  title(axSpec,'频谱对比 (相对dB, 已去直流)');
+axCon   = subplot('Position',[0.390 0.06 0.330 0.400]);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
 grid(axTx,'on'); grid(axRxRaw,'on'); grid(axSpec,'on'); grid(axCon,'on');
 
-% --- 底部信息区 (多行, 不遮挡图表) ---
+% --- 右侧信息栏 (纵向多行显示) ---
+uicontrol(f,'Style','text','String','处理信息','Units','normalized', ...
+    'Position',[0.750 0.945 0.240 0.040],'FontSize',13,'FontWeight','bold', ...
+    'HorizontalAlignment','center','BackgroundColor',[0.85 0.85 0.85]);
 txtStatus = uicontrol(f,'Style','text','String','就绪 - 选择模式后点"运行"', ...
-    'Units','normalized','Position',[0.010 0.005 0.980 0.075], ...
+    'Units','normalized','Position',[0.750 0.020 0.240 0.915], ...
     'HorizontalAlignment','left','FontSize',11,'BackgroundColor','w', ...
     'FontName','Microsoft YaHei UI');
 
@@ -177,23 +180,29 @@ set(f,'HandleVisibility','on');
         info.papr = max(rxr) / max(sqrt(mean(rxr.^2)), 1e-12);
         info.clipPct = 100 * mean(rxr > 0.9);
 
-        %% 状态文本
+        %% 状态文本 (纵向一行一项)
         codeRate = (prm.TBsize + 24) / (prm.NDataSubc * (prm.NSym - prm.NPilot) * prm.Qm);
-        S = sprintf('模式: %s | 调制: %s | TBsize=%d | 码率=%.3f', info.mode, modStr, prm.TBsize, codeRate);
-        S = sprintf('%s\nCRC=%d | BER=%.4g', S, info.crc, info.ber);
+        S = sprintf('模式: %s', info.mode);
+        S = sprintf('%s\n调制: %s (TB=%d)', S, modStr, prm.TBsize);
+        S = sprintf('%s\n码率: %.3f', S, codeRate);
+        S = sprintf('%s\nCRC: %d', S, info.crc);
+        S = sprintf('%s\nBER: %.4g', S, info.ber);
         if isfield(info,'rho') && ~isempty(info.rho)
-            S = sprintf('%s | rho=%.4f', S, info.rho);
+            S = sprintf('%s\n互相关 rho: %.4f', S, info.rho);
         elseif mode == 1
-            S = sprintf('%s | 仿真SNR=%.0f dB', S, snr);
+            S = sprintf('%s\n仿真 SNR: %.0f dB', S, snr);
         end
         if isfield(info,'snrAvg') && ~isnan(info.snrAvg)
-            S = sprintf('%s\n每子载波SNR: 均值=%.2f dB | 中位=%.2f dB', S, info.snrAvg, info.snrMed);
+            S = sprintf('%s\n子载波SNR均值: %.2f dB', S, info.snrAvg);
+            S = sprintf('%s\n子载波SNR中位: %.2f dB', S, info.snrMed);
         end
         if isfield(info,'papr')
-            S = sprintf('%s\nPAPR=%.2f | 满幅(>0.9)占比=%.1f%%', S, info.papr, info.clipPct);
+            S = sprintf('%s\nPAPR: %.2f', S, info.papr);
+            S = sprintf('%s\n满幅占比: %.1f%%', S, info.clipPct);
         end
         if isfield(info,'off') && ~isempty(info.off)
-            S = sprintf('%s | 帧偏移=%d样点 | 频偏=%.1f Hz', S, info.off, info.cfo);
+            S = sprintf('%s\n帧偏移: %d 样点', S, info.off);
+            S = sprintf('%s\n频偏: %.1f Hz', S, info.cfo);
         end
         if isfield(info,'err'), S = sprintf('%s\n同步出错: %s', S, info.err); end
         if isfield(info,'clip'), S = sprintf('%s\n[警告] %s', S, info.clip); end
