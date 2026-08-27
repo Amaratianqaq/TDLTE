@@ -37,22 +37,22 @@ txtSNR  = uicontrol(f,'Style','text','String','25 dB','Units','normalized', ...
     'Position',[0.535 0.955 0.050 0.025],'FontSize',11,'HorizontalAlignment','left');
 set(sldSNR,'Callback',@(s,e) set(txtSNR,'String',sprintf('%.0f dB',get(sldSNR,'Value'))));
 
-btnRun  = uicontrol(f,'Style','pushbutton','String','▶ 运行','Units','normalized', ...
+btnRun  = uicontrol(f,'Style','pushbutton','String','运行','Units','normalized', ...
     'Position',[0.615 0.945 0.090 0.045],'FontSize',14,'FontWeight','bold', ...
     'BackgroundColor',[0.20 0.62 0.35],'ForegroundColor','w');
 
 % --- 2×2 绘图区 ---
-axTx    = subplot('Position',[0.055 0.50 0.430 0.415]);  title(axTx,'Tx 时域 I/Q (峰值归一化)');
-axRxRaw = subplot('Position',[0.545 0.50 0.430 0.415]);  title(axRxRaw,'Rx 时域 I/Q (峰值归一化)');
-axSpec  = subplot('Position',[0.055 0.10 0.430 0.355]);  title(axSpec,'频谱对比 (相对dB, 已去直流)');
-axCon   = subplot('Position',[0.545 0.10 0.430 0.355]);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
+axTx    = subplot('Position',[0.055 0.505 0.430 0.405]);  title(axTx,'Tx 时域 I/Q (峰值归一化)');
+axRxRaw = subplot('Position',[0.545 0.505 0.430 0.405]);  title(axRxRaw,'Rx 时域 I/Q (峰值归一化)');
+axSpec  = subplot('Position',[0.055 0.130 0.430 0.330]);  title(axSpec,'频谱对比 (相对dB, 已去直流)');
+axCon   = subplot('Position',[0.545 0.130 0.430 0.330]);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
 grid(axTx,'on'); grid(axRxRaw,'on'); grid(axSpec,'on'); grid(axCon,'on');
 
 % --- 底部信息区 (多行, 不遮挡图表) ---
 txtStatus = uicontrol(f,'Style','text','String','就绪 - 选择模式后点"运行"', ...
-    'Units','normalized','Position',[0.010 0.005 0.980 0.080], ...
+    'Units','normalized','Position',[0.010 0.005 0.980 0.065], ...
     'HorizontalAlignment','left','FontSize',11,'BackgroundColor','w', ...
-    'FontName','Consolas');
+    'FontName','Microsoft YaHei UI');
 
 set(btnRun,'Callback',@(s,e) runAll());
 set(f,'HandleVisibility','on');
@@ -177,7 +177,7 @@ set(f,'HandleVisibility','on');
             if isfield(info,'rho'), S = sprintf('%s | 互相关rho=%.3f', S, info.rho); end
             if isfield(info,'off'), S = sprintf('%s\n帧偏移=%d样点 | 频偏=%.1f Hz', S, info.off, info.cfo); end
             if isfield(info,'err'), S = sprintf('%s\n同步出错: %s', S, info.err); end
-            if isfield(info,'clip'), S = sprintf('%s\n⚠ %s', S, info.clip); end
+            if isfield(info,'clip'), S = sprintf('%s\n[警告] %s', S, info.clip); end
         end
         set(txtStatus,'String',S);
 
