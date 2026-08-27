@@ -224,3 +224,42 @@ K=128 平均后信道干净（CP内75%、主径0.06μs、相位稳定）→ **1.
 
 - `rx_accum_result.mat` = K=128 平均数据（tx掩码0001/采集时隙00）；旧 K=16 数据在 `rx_accum_result_K16_backup.mat`
 - 全部脚本输出已追加至 `run_log.txt`（verify_chain / snr_floor_test / diag_ber / evm_check / grid_probe / echo_check / test_notch / frac_sync_test / evm_compare / evm_fine / evm_phase / analyze_hw_capture / analyze_udp_probe）
+
+## 十二、根因更正（2026-08-27）：I 路解包 bug 才是真正的根因 ⚠️
+
+> **本节推翻此前"设备固件/回环路径是瓶颈"的结论。** 真正根因是 `OFDM_RxDataDeal.m` 的 **I 路解包代码错误**，
+> 已于 2026-08-27 修复。第 10、11 节中所有基于 rho≈0.3 / SNR≈1.8dB / BER≈26~28% 的结论
+> 都是在**被破坏的 I 路信号**上测得的，**全部作废**，需在修复后重新实测。
+
+### 12.1 bug 描述
+
+- **旧代码（错误）**：`i_raw = bitshift(i_raw, -4)`（取 16 位字的高 12 位）
+- **新代码（正确，2026-08-27 实测确认）**：I 路与 Q 路同格式——`bitshift(i_raw,-8) + bitand(i_raw,15)*256`
+  （设备 ADC 回传格式：高字节=12bit 值低 8 位，低字节低 4 位=值高 4 位）
+- **后果**：旧解包丢失 I 路高 4 位、低 8 位错位放大并按 12bit 补码回绕 → I 路被系统性破坏 → 有效信号能量减半以上、rho 封顶 ~0.3、SNR 封顶 ~1.8dB，且所有 DSP 手段（LLR 加权/Notch/信道门控/相位校正）都无法修复。
+
+### 12.2 修复验证（保存的原始字节重解包）
+
+| 数据（原始字节） | 旧 I 解包 rho | 新 I 解包 rho | 提升 |
+|---|---|---|---|
+| udp_format_probe rxA1 / rxA2 | 0.046 / 0.049 | **0.212 / 0.212** | ~4.5x |
+| sweep_txA+slot01 | 0.058 | **0.232** | ~4.0x |
+| sweep_txB+slot03 | 0.045 | **0.197** | ~4.3x |
+
+- `analyze_udp_probe.m` 修复后枚举出正确布局：**LELE I=I Q=Q（双字节交换）rho=0.2498**（旧最佳 0.1855 是错误的 I/Q 对调组合）
+- 该探针当初未发现 bug 的原因：其枚举空间里 **I 路永远是 `>>4`，从未包含"I 也字节交换"**，正确布局不在搜索空间内
+
+### 12.3 修复文件清单
+
+| 文件 | 变更 |
+|---|---|
+| `Rx/OFDM_RxDataDeal.m` | I 路解包改为字节交换（与 Q 相同）— 核心修复 |
+| `rx_accum_v2/v3.m`、`rx_diag_data.m`、`rx_sweep_router.m`、`rx_sweep_delay_slot.m` | 解包同步修正 |
+| `tone_quick.m`、`tx_tone_test/repeat/scan.m`、`verify_bandwidth.m`、`verify_interf_cancel.m`、`verify_delay_sweep.m`、`verify_sweep.m`、`verify_tx_chain.m`、`evm_amp_sweep.m`、`scan_config.m` | 原 `floor(iw/16); floor(qw/16)`（I/Q 均错）改为双字节交换 |
+| `analyze_udp_probe.m` | 枚举增加 qmode=4（双字节交换），现能正确识别布局 |
+
+### 12.4 待办（修复后重新实测）
+
+1. **重新跑硬件环回**（直连/1GHz/衰减2/增益5）：预期 rho 大幅上升（保存数据显示可到 0.8+ 水平），CRC 有望 =1
+2. 之前保存的 `.mat`（rx_accum_v3_result / hw_capture / rx_diag_data_result 等）均为旧解包数据，**不可再用于结论**
+3. 若修复后仍 CRC=0，再按第 10 节的厂商路线排查（届时结论才可信）

@@ -116,12 +116,14 @@ set(f,'HandleVisibility','on');
         legend(axSpec,{'Tx','Rx原始'},'Location','best');
         xlim(axSpec,[-15.36 15.36]); ylim(axSpec,[-70 5]);
 
-        %% 真实/加载模式: 相关与定时信息 (先对齐, 供后续星座图使用)
+        %% 真实/加载模式: 稳健同步(syncLTE: 频偏搜索+互相关) + 削波检测
         procIQ = rxIQ;
         if mode == 2 || mode == 3
+            clipWarn = checkClip(rxIQ);
+            if ~isempty(clipWarn), info.clip = clipWarn; end
             try
-                [rxAl, offStar, cfoHz, rho] = syncAlign(rxIQ, txIQ, prm);
-                info.off = offStar-1; info.cfo = cfoHz; info.rho = rho;
+                [rxAl, rho, cfoHz, delay] = syncLTE(rxIQ, txIQ, prm);
+                info.off = delay; info.cfo = cfoHz; info.rho = rho;
                 procIQ = rxAl;                 % 星座图/CRC用对齐+去频偏信号
             catch ME
                 info.err = ME.message;
@@ -153,10 +155,11 @@ set(f,'HandleVisibility','on');
         if mode == 1
             S = sprintf('%s\nSNR=%.0f dB | CRC=%d | BER=%.4g', S, snr, info.crc, info.ber);
         else
-            S = sprintf('%s\nCRC(对齐+去频偏)=%d', S, info.crc);
+            S = sprintf('%s\nCRC(稳健同步+MMSE)=%d', S, info.crc);
             if isfield(info,'rho'), S = sprintf('%s | 互相关rho=%.3f', S, info.rho); end
-            if isfield(info,'off'), S = sprintf('%s\n帧偏移off*=%d样点 | 频偏=%.1f Hz', S, info.off, info.cfo); end
-            if isfield(info,'err'), S = sprintf('%s\n对齐处理出错: %s', S, info.err); end
+            if isfield(info,'off'), S = sprintf('%s\n帧偏移=%d样点 | 频偏=%.1f Hz', S, info.off, info.cfo); end
+            if isfield(info,'err'), S = sprintf('%s\n同步出错: %s', S, info.err); end
+            if isfield(info,'clip'), S = sprintf('%s\n⚠ %s', S, info.clip); end
         end
         set(txtStatus,'String',S);
 
@@ -193,11 +196,23 @@ pts = pts(:);
 end
 
 function [dataSyms, crcOK] = rxConstellation(rxIQ, prm)
-% 走收端链路: 去CP+FFT -> 信道估计 -> 均衡 -> 提取数据符号; 附CRC
+% 走收端链路(与OFDM_RxMain一致): 去CP+FFT -> LS信道估计+频域平滑 -> MMSE均衡 -> 提取数据符号
 rxGrid = OFDMDemod(rxIQ, prm);
 [rs0, rs1] = RefSignalGen(prm);
 H = ChanEst(rxGrid, rs0, rs1, prm);
-eqGrid = Equalize(rxGrid, H, 'ZF');
+% 频域平滑 (与 OFDM_RxMain 一致, 降低LS估计噪声)
+notchMask = false(prm.NSubc, 1);
+for l = 1:prm.NSym
+    h = H(:, l); h(notchMask) = NaN;
+    h = movmean(h, prm.chanSmooth, 'omitnan');
+    h(notchMask) = H(notchMask, l);
+    H(:, l) = h;
+end
+pilotIdx1 = prm.PilotSymbols(1) + 1; pilotIdx2 = prm.PilotSymbols(2) + 1;
+residual = [abs(rxGrid(:,pilotIdx1) - H(:,pilotIdx1).*rs0).^2; ...
+            abs(rxGrid(:,pilotIdx2) - H(:,pilotIdx2).*rs1).^2];
+noiseVar = max(median(residual), 1e-9);
+eqGrid = Equalize(rxGrid, H, 'MMSE', noiseVar);
 dataSyms = ExtractData(eqGrid, prm);
 try
     [~, crcOK] = OFDM_RxMain(rxIQ, prm);
@@ -206,41 +221,14 @@ catch
 end
 end
 
-function [rxAl, offStar, cfoHz, rho] = syncAlign(rxIQ, txIQ, prm)
-% CP相关: 频偏估计 + 去频偏 + 子帧定时对齐 (来自 verify_hw_link)
-r = rxIQ(:).' - mean(rxIQ);
-NFFT = prm.NFFT; L = numel(r);
-ac = conj(r(1:end-NFFT)) .* r(NFFT+1:end);
-w  = abs(r(1:end-NFFT)).^2 + abs(r(NFFT+1:end)).^2;
-cfoSub = angle(sum(ac .* w)) / (2*pi);
-cfoHz  = cfoSub * 15000;
-n = 0:L-1;
-rC = r .* exp(-1j*2*pi*cfoSub*n/NFFT);
-
-pad = NFFT + 160;
-rCp = [rC, rC(1:pad)];
-acAll = conj(rCp(1:end-NFFT)) .* rCp(NFFT+1:end);
-eAll1 = abs(rCp(1:end-NFFT)).^2;
-eAll2 = abs(rCp(NFFT+1:end)).^2;
-cp = prm.CPLengths;
-symStart = cumsum([0, cp(1:13) + NFFT*ones(1,13)]);
-num = zeros(1,L); den = zeros(1,L);
-for l = 1:14
-    cl = cp(l); s = symStart(l);
-    numS = movsum(acAll, cl, 'Endpoints', 'discard');
-    e1S  = movsum(eAll1, cl, 'Endpoints', 'discard');
-    e2S  = movsum(eAll2, cl, 'Endpoints', 'discard');
-    idx = mod((0:L-1) + s, L) + 1;
-    num = num + numS(idx);
-    den = den + sqrt(e1S(idx) .* e2S(idx));
+function warn = checkClip(rxIQ)
+% checkClip - 削波/PAPR检测: 满幅或低PAPR说明接收增益过高(ADC饱和), 提示降增益/幅度
+warn = '';
+r = abs(rxIQ(:));
+rmsv = sqrt(mean(r.^2));
+papr = max(r) / max(rmsv, 1e-12);
+clipFrac = mean(r > 0.9);
+if papr < 1.6 || clipFrac > 0.5
+    warn = sprintf('RX削波! PAPR=%.2f(OFDM正常~3), |x|>0.9占%.0f%% -> 降低RX增益/发送幅度', papr, 100*clipFrac);
 end
-metric = num ./ max(den, 1e-12);
-[~, offStar] = max(metric);
-rxAl = [rC(offStar:end), rC(1:offStar-1)];
-
-% 与发送信号的相关度
-u = rxAl - mean(rxAl);
-v = txIQ(:).' - mean(txIQ);
-c = xcorr(u, v);
-rho = max(abs(c)) / (sqrt(sum(abs(u).^2)) * sqrt(sum(abs(v).^2)));
 end

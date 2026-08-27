@@ -58,10 +58,11 @@ for io = 1:2              % I 字序
             for rev = 0:1 % 整体倒序
                 b = bA1;
                 if rev, b = b(end:-1:1); end
-                for qmode = 1:3
+                for qmode = 1:4
                     % qmode 1: Q直接>>4 (tone脚本/decode4假设)
-                    % qmode 2: Q字节交换逆 (OFDM_RxDataDeal假设)
+                    % qmode 2: Q字节交换逆 (OFDM_RxDataDeal旧假设)
                     % qmode 3: Q取低12位不右移 (块状假设)
+                    % qmode 4: I与Q均字节交换逆 (设备实测格式, 2026-08-27确认)
                     z = zeros(1, N);
                     for n = 0:N-1
                         o = n*4;
@@ -76,6 +77,7 @@ for io = 1:2              % I 字序
                             case 1, iv = floor(iw_/16); qv = floor(qw_/16);
                             case 2, iv = floor(iw_/16); qv = bitshift(qw_,-8) + bitand(qw_,15)*256;
                             case 3, iv = iw_ - 2048;    qv = qw_ - 2048;
+                            case 4, iv = bitshift(iw_,-8) + bitand(iw_,15)*256; qv = bitshift(qw_,-8) + bitand(qw_,15)*256;
                         end
                         if iv > 2047, iv = iv - 4096; end
                         if qv > 2047, qv = qv - 4096; end

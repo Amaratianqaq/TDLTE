@@ -58,7 +58,7 @@ for k = 1:size(combos,1)
     o = (0:N-1)*4;
     iw = rb(o+1) + rb(o+2)*256;
     qw = rb(o+3) + rb(o+4)*256;
-    iv = floor(iw/16); qv = floor(qw/16);
+    iv = bitshift(iw,-8) + bitand(iw,15)*256; qv = bitshift(qw,-8) + bitand(qw,15)*256;
     iv(iv>2047) = iv(iv>2047) - 4096;
     qv(qv>2047) = qv(qv>2047) - 4096;
     z = iv + 1j*qv;
