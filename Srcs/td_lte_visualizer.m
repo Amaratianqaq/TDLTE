@@ -152,10 +152,13 @@ set(f,'HandleVisibility','on');
         %% 星座图 (Rx均衡后)
         ptsIdeal = idealConstellation(modStr);
         [dataSyms, crcOK] = rxConstellation(procIQ, prm);
-        plot(axCon, real(ptsIdeal), imag(ptsIdeal), 'rx', ...
-            real(dataSyms(1:min(end,8000))), imag(dataSyms(1:min(end,8000))), 'b.');
+        % 先画Rx点(小蓝点), 再画理想点(大红叉)置顶, 避免被覆盖
+        plot(axCon, real(dataSyms(1:min(end,8000))), imag(dataSyms(1:min(end,8000))), 'b.', 'MarkerSize', 3);
+        hold(axCon, 'on');
+        plot(axCon, real(ptsIdeal), imag(ptsIdeal), 'rx', 'MarkerSize', 14, 'LineWidth', 2.5);
+        hold(axCon, 'off');
         xlabel(axCon,'I'); ylabel(axCon,'Q');
-        legend(axCon,{'理想','Rx均衡后'},'Location','best');
+        legend(axCon,{'Rx均衡后','理想点'},'Location','best');
         info.crc = crcOK;
 
         %% 统一计算: BER / 每子载波SNR / PAPR (所有模式)
