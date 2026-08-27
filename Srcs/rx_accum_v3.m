@@ -26,6 +26,16 @@ pcip = '192.168.1.180'; xsrpip = '192.168.1.166';
 
 prm = GetLTEParams();
 rng(42); txIQ = OFDM_TxMain(prm); txIQ = txIQ(:).';
+% PAPR削减: 把峰值压到 paprClip*RMS (设备底噪固定时直接换取平均功率)
+% 原始PAPR约11dB; 压到1.5xRMS(PAPR约3.5dB)平均功率约+6~7dB, 削峰失真<1%
+paprClip = 1.5;
+if paprClip > 0
+    rmsv = sqrt(mean(abs(txIQ).^2));
+    lim = paprClip * rmsv;
+    over = abs(txIQ) > lim;
+    txIQ(over) = lim * txIQ(over) ./ abs(txIQ(over));
+    fprintf('PAPR削减: 峰值限制=%.1fx RMS\n', paprClip);
+end
 dataIQ = packIQ(txIQ, SAMPLE_LENGTH);
 
 fprintf('==== K=%d 相干平均 (tx=0001/slot=00, 勿碰设备/线缆) ====\n', K);
