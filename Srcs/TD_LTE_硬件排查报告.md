@@ -76,17 +76,45 @@
 3. **用 RF_Test 或另一台 XSRP** 验证设备射频宽带收发能力
 4. 若上述均确认设备正常 → 对照厂商实验的命令序列与我们代码的差异
 
-## 八、代码资产清单（TDLTE\Srcs）
+## 八、代码资产清单（TDLTE\Srcs，已清理过时诊断脚本/数据）
+
+### 8.1 发送链路（Tx/）
 
 | 文件 | 功能 |
 |---|---|
-| TD_LTE_Main.m | 主流程（TX1/RX1，端口已修） |
-| OFDM_TxMain / OFDM_RxMain | 发/收总入口（软判决+MMSE+平滑） |
+| OFDM_TxMain.m | 发送端总入口（串联全链路） |
+| TBGen / CRCAttach / CodeBlockSeg / TurboEncode / RateMatch / CodeBlockCat | 信源→加CRC→码块分割→Turbo编码→速率匹配→级联 |
+| Scramble / Modulate / RefSignalGen / ResMap / OFDMMod | 加扰→调制→导频→资源映射→OFDM调制(加CP) |
+
+### 8.2 接收链路（Rx/）
+
+| 文件 | 功能 |
+|---|---|
+| OFDM_RxMain.m | 接收端总入口（软判决+MMSE+频域平滑+Turbo译码） |
+| OFDMDemod / ChanEst / Equalize / ExtractData | 去CP+FFT→信道估计→MMSE均衡→数据提取 |
+| DemodulateSoft / DescrambleSoft / DeRateMatch / TurboDecode / CodeBlockDeSeg | 软解调→解扰→解速率匹配→Turbo译码→去分段+CRC |
+
+### 8.3 公共与接口
+
+| 文件 | 功能 |
+|---|---|
+| GetLTEParams.m | 全局参数（**DC置空：NDataSubc=1199, DCIdx=601**） |
 | syncLTE.m | 稳健同步（频偏搜索+互相关定时+相位） |
-| DemodulateSoft / DescrambleSoft / DeRateMatch | 软判决链 |
-| verify_chain / snr_floor_test | 离线验证与 SNR 门槛测试 |
-| verify_hw_link / verify_rho / rx_accum / test_notch / tx_tone_scan / verify_tx_chain 等 | 硬件诊断脚本（全部带日志记录） |
+| rateMatchEr.m | 码块速率匹配长度分配（36.212 5.1.4.1.2 余数分配） |
+| OFDM_RFLoopback.m / OFDM_RxDataDeal.m | 硬件环回收发 + I/Q解包（**双字节交换，已修**） |
+| TD_LTE_Main.m | 主流程 |
 | logResult.m / run_log.txt | 运行日志 |
+
+### 8.4 验证与工具
+
+| 文件 | 功能 |
+|---|---|
+| verify_chain.m | 离线全链路验证（QPSK/16QAM/64QAM/小TB 全 CRC=1） |
+| snr_floor_test.m | SNR 门槛测试（QPSK 全链路 1dB、纯Turbo 0.5dB） |
+| subcarrierSNR.m | 每子载波 SNR 度量工具 |
+| rx_sweep_txpeak.m | 扫发送峰值找无削波工作点（可选调制） |
+| rx_accum_mod.m | K 帧相干平均（可选调制+txPeak） |
+| td_lte_visualizer.m | 可视化界面（2×2 图 + 削波检测） |
 
 ## 九、备注
 
@@ -158,14 +186,15 @@ K=128 平均后信道干净（CP内75%、主径0.06μs、相位稳定）→ **1.
 
 ### 10.7 本阶段新增脚本
 
-| 脚本 | 功能 |
+> 注：以下为排查过程中临时编写的诊断脚本，**结论已归档入本报告，脚本与过时 .mat 数据已于 8/27 清理删除**。保留的最终工具见 8.4 节（`rx_sweep_txpeak.m`、`rx_accum_mod.m`、`subcarrierSNR.m`、`td_lte_visualizer.m`、`verify_chain.m`、`snr_floor_test.m`）。
+
+| 脚本（已删除） | 功能 |
 |---|---|
 | rx_diag_data.m | 数据相关性诊断（证实回环） |
 | rx_sweep_router.m | 0x68 路由值扫描 |
 | rx_sweep_delay_slot.m | 0x67/时隙/掩码扫描（发现 0001/00 配置） |
 | rx_accum_v3.m | 大 K 相干平均（K=128 → SNR 1.80dB） |
-| rx_accum_v2.m | 差分对消（已证伪，留档） |
-| subcarrierSNR.m | 每子载波 SNR 工具（排除污染行口径） |
+| rx_accum_v2.m | 差分对消（已证伪） |
 | test_offline_margin*.m | 离线解码优化验证（全部无效） |
 
 ## 十一、8/26 全量离线复测数据快照（更新数据）
@@ -263,3 +292,33 @@ K=128 平均后信道干净（CP内75%、主径0.06μs、相位稳定）→ **1.
 1. **重新跑硬件环回**（直连/1GHz/衰减2/增益5）：预期 rho 大幅上升（保存数据显示可到 0.8+ 水平），CRC 有望 =1
 2. 之前保存的 `.mat`（rx_accum_v3_result / hw_capture / rx_diag_data_result 等）均为旧解包数据，**不可再用于结论**
 3. 若修复后仍 CRC=0，再按第 10 节的厂商路线排查（届时结论才可信）
+
+## 十三、最终解决（2026-08-27）：链路打通 ✅
+
+> **第二个根因 = RX 增益过高导致 ADC 削波。** 修复 I 解包后 rho 0.3→0.8，但仍 CRC=0；
+> 实测发现 RX 满幅削波（PAPR≈1.14、峰值恒 √2、64% 样点近满幅），星座糊、"门函数"频谱。
+> 降低上位机 RX 增益后，`rx_sweep_txpeak.m` 实测：
+
+| txPeak | RX峰值 | PAPR | 满幅% | rho | 每子载波SNR | BER | CRC |
+|---|---|---|---|---|---|---|---|
+| 2047 | 1.415 | 1.28 | 84.0 | 0.805 | 7.48 dB | 2.94% | 0 |
+| 1000 | 1.415 | 1.39 | 70.6 | 0.840 | 10.16 dB | 0.88% | 0 |
+| **500** | 1.415 | 2.08 | 18.1 | 0.878 | 18.89 dB | **0** | **1** |
+| **300** | 1.336 | 3.10 | 1.0 | 0.881 | **27.69 dB** | 0 | 1 |
+| **200** | 0.988 | 3.31 | 0.0 | 0.882 | **27.91 dB** | 0 | 1 |
+| 150 | 0.758 | 3.39 | 0.0 | 0.881 | 27.62 dB | 0 | 1 |
+| 100 | 0.522 | 3.45 | 0.0 | 0.882 | 26.97 dB | 0 | 1 |
+| 75 / 50 | <0.4 | 3.47 | 0.0 | 0.87~0.88 | 25.2 / 21.7 dB | 0 | 1 |
+
+### 13.1 最终结论
+
+1. **根因一**：`OFDM_RxDataDeal.m` I 路解包错误（`>>4` 应为字节交换）→ 破坏 I 路，rho 封顶 0.3。**已修复**。
+2. **根因二**：RX 增益过高（`SystemConfig.ini RX1_Gain=21dB`）→ ADC 削波，即使修好解包仍 CRC=0。**降低 RX 增益后解决**。
+3. **最优工作点**：`txPeak=200~300`（PAPR≈3.1~3.3、无削波、SNR≈27.9dB、BER=0、CRC=1），**远高于解码门槛（~4.5dB），余量 ~23dB**。
+4. **最终判定**：整条链路（代码 + 设备回环）**完全正常**。此前所有"设备固件是瓶颈/需厂商 TDLTE_PHY_ALL_main"的结论**全部作废**——问题只在（a）I 解包 bug（b）RX 增益未调。
+
+### 13.2 收尾建议
+
+- 主流程 `TD_LTE_Main` / `OFDM_RFLoopback` 的 `txPeak` 默认值仍是 2047；建议改为 **300**（或把 RX 增益降到 2047 也不削波的档位）
+- 把最终"RX 增益值 + txPeak=300"固化进 `SystemConfig.ini` 与实验记录
+- `td_lte_visualizer.m` 已改用稳健 syncLTE + MMSE，并内置削波检测（满幅时状态栏显示 ⚠ 提示）

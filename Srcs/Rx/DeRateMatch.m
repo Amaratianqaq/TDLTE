@@ -28,7 +28,7 @@ P = [0 16 8 24 4 20 12 28 2 18 10 26 6 22 14 30 ...
 
 % --- 参数计算 (与RateMatch一致) ---
 Ncb = 3 * Kpi;
-E = NL * Qm * floor(G / (NL * Qm * C));
+E = numel(bits);                       % 输入长度即本码块的E (含余数分配, 勿用floor截断)
 k0 = R * (2 * ceil(Ncb / (8 * R)) * rvidx + 2);
 
 % --- 步骤1: 重建循环缓冲, 标记NULL位置 ---

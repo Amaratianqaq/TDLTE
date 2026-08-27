@@ -48,7 +48,7 @@ bitsCRC = CRCAttach(bits, '24A');
 cbOut = cell(segInfo.C, 1);
 for r = 1:segInfo.C
     coded = TurboEncode(cbs{r}, segInfo.K(r));
-    cbOut{r} = RateMatch(coded, segInfo.K(r), segInfo.C, info.G, info.Qm, prm.NL, prm.RV);
+    cbOut{r} = RateMatch(coded, segInfo.K(r), segInfo.C, info.G, info.Qm, prm.NL, prm.RV, r);
 end
 rm = CodeBlockCat(cbOut);
 scr = Scramble(rm, prm);
@@ -68,7 +68,7 @@ for sb = 0:0.5:8
     ptr = 1; cbDec = cell(1, segInfo.C);
     for r = 1:segInfo.C
         Kr = Krs(r);
-        E = prm.NL * prm.Qm * floor(G / (prm.NL * prm.Qm * segInfo.C));
+        E = rateMatchEr(G, prm.Qm, prm.NL, segInfo.C, r);
         cbBits = desc(ptr:ptr+E-1); ptr = ptr + E;
         rmOut = DeRateMatch(cbBits, Kr, segInfo.C, G, prm.Qm, prm.NL, prm.RV);
         [cbDec{r}, ~] = TurboDecode(rmOut, Kr, prm.maxIter);

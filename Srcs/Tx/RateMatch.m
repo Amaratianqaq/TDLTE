@@ -1,4 +1,4 @@
-function out = RateMatch(coded, K, C, G, Qm, NL, rvidx)
+function out = RateMatch(coded, K, C, G, Qm, NL, rvidx, r)
 % RateMatch - 速率匹配 (单个码块, 3GPP 36.212 5.1.4.1)
 % 输入:
 %   coded - Turbo编码输出 (3列矩阵 [d0 d1 d2], 各D=K+4)
@@ -8,8 +8,9 @@ function out = RateMatch(coded, K, C, G, Qm, NL, rvidx)
 %   Qm    - 调制阶数 (2/4/6)
 %   NL    - 层数 (1或2)
 %   rvidx - 冗余版本 (0~3)
+%   r     - 码块序号 (1-based, 用于按36.212 5.1.4.1.2分配余数)
 % 输出:
-%   out   - 速率匹配后bit列向量 (长度 E = NL*Qm*floor(G/(NL*Qm*C)))
+%   out   - 速率匹配后bit列向量 (长度 E = rateMatchEr(G,Qm,NL,C,r))
 %
 % 处理 (36.212 5.1.4.1, 与 lteRateMatchTurbo 一致):
 %   1. 子块交织: 32列, NULL哑元放在最前, 列置换表P, 逐列读出
@@ -32,8 +33,8 @@ d = coded.';                                  % 3 x D (输入为3列矩阵)
 y = [NULL * ones(3, ND), d];                  % 3 x Kpi
 v = zeros(3, Kpi);
 for k = 0:Kpi-1
-    j = floor(k / R); r = mod(k, R);
-    v(:, k + 1) = y(:, r * Ccol + P(j + 1) + 1);
+    j = floor(k / R); row = mod(k, R);   % 注意: 勿用r(与码块序号参数r冲突)
+    v(:, k + 1) = y(:, row * Ccol + P(j + 1) + 1);
 end
 
 % --- 校验流2按协议重排 (36.212 5.1.4.1.1) ---
@@ -49,7 +50,7 @@ w(Kpi+2:2:end)   = v(3, :);
 
 % --- 比特选择: E, k0, 循环读跳过NULL ---
 Ncb = 3 * Kpi;
-E = NL * Qm * floor(G / (NL * Qm * C));
+E = rateMatchEr(G, Qm, NL, C, r);
 k0 = R * (2 * ceil(Ncb / (8 * R)) * rvidx + 2);
 out = zeros(E, 1);
 count = 0;

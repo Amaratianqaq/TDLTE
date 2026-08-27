@@ -14,6 +14,8 @@ function prm = GetLTEParams()
 %% ===== 频域/时域基本参数 =====
 prm.NRB        = 100;                 % 资源块数 (100RB = 20MHz)
 prm.NSubc      = prm.NRB * 12;        % 子载波数 = 1200
+prm.NDataSubc  = prm.NSubc - 1;       % DC置空后数据子载波数 = 1199 (符合LTE: DC不承载数据)
+prm.DCIdx      = prm.NSubc / 2 + 1;   % DC子载波行号 = 601 (置空)
 prm.NFFT       = 2048;                % IFFT/FFT 点数
 prm.NSym       = 14;                  % 每子帧 OFDM 符号数
 prm.PilotSymbols = [3 10];            % 导频符号位置 (0起, 文档L73)

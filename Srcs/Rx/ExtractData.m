@@ -12,20 +12,23 @@ function dataSyms = ExtractData(eqGrid, prm)
 
 NSubc = prm.NSubc;                  % 1200
 NSym  = prm.NSym;                   % 14
+NDataSubc = prm.NDataSubc;          % 1199 (DC置空)
 
 % 导频符号位置 (MATLAB 1-indexed)
 pilotIdx1 = prm.PilotSymbols(1) + 1;   % 符号3 -> 索引4
 pilotIdx2 = prm.PilotSymbols(2) + 1;   % 符号10 -> 索引11
 
-% 提取非导频符号 (共12个)
-dataSyms = zeros(NSubc * (NSym - prm.NPilot), 1);
+% 提取非导频符号 (共12个), 跳过DC子载波行
+dataSyms = zeros(NDataSubc * (NSym - prm.NPilot), 1);
+rows = [1:prm.DCIdx-1, prm.DCIdx+1:NSubc];   % 除DC外的物理子载波行
 idx = 1;
 for l = 1:NSym
     if l == pilotIdx1 || l == pilotIdx2
         continue;                    % 跳过导频符号
     end
-    dataSyms(idx : idx + NSubc - 1) = eqGrid(:, l);
-    idx = idx + NSubc;
+    col = eqGrid(:, l);
+    dataSyms(idx : idx + NDataSubc - 1) = col(rows);
+    idx = idx + NDataSubc;
 end
 
 end

@@ -21,7 +21,7 @@ txIQ = OFDM_TxMain(prm);
 % 并把第6参数rxCh改为2 (修改Get_IQ命令第2字节, 该字节含义为推测)。
 pcip   = '192.168.1.180';
 xsrpip = '192.168.1.166';
-rxIQ   = OFDM_RFLoopback(txIQ, pcip, xsrpip);
+rxIQ   = OFDM_RFLoopback(txIQ, pcip, xsrpip,200);
                                                                                                    
 %% 4. 接收端: 时域同步(频偏搜索+互相关定时) + 解调并校验
 % 利用已知发送信号txIQ做稳健同步 (syncLTE): 校正帧起点偏移与载波频偏。

@@ -19,13 +19,16 @@ grid = zeros(prm.NSubc, prm.NSym);
 grid(:, prm.PilotSymbols(1) + 1) = rs0(:);
 grid(:, prm.PilotSymbols(2) + 1) = rs1(:);
 
-% 2) 数据映射: 先k后l, 跳过导频符号
+% 2) 数据映射: 先k后l, 跳过导频符号; DC子载波(prm.DCIdx)置空不填数据
 idx = 1;
+rows = [1:prm.DCIdx-1, prm.DCIdx+1:prm.NSubc];   % 除DC外的物理子载波行
 for l = 0:prm.NSym - 1
     if any(prm.PilotSymbols == l)
         continue;                        % 导频符号, 跳过
     end
-    grid(:, l + 1) = dataSyms(idx : idx + prm.NSubc - 1);
-    idx = idx + prm.NSubc;
+    col = zeros(prm.NSubc, 1);
+    col(rows) = dataSyms(idx : idx + prm.NDataSubc - 1);
+    grid(:, l + 1) = col;
+    idx = idx + prm.NDataSubc;
 end
 end

@@ -20,13 +20,14 @@ rxGrid = OFDMDemod(rxIQ, prm);
 % DC位于网格行601; 子载波间隔15kHz; 干扰实测集中在 DC±2.25MHz (行451~750)。
 if isfield(prm, 'NotchMHz') && prm.NotchMHz > 0
     Nnotch = round(prm.NotchMHz / 0.015);       % 子载波数
-    kNotch = (601 - Nnotch) : (601 + Nnotch);
+    kNotch = (prm.DCIdx - Nnotch) : (prm.DCIdx + Nnotch);
     kNotch = kNotch(kNotch >= 1 & kNotch <= prm.NSubc);
 else
     kNotch = [];                                 % 关闭时为空, 避免后续引用未定义
 end
 notchMask = false(prm.NSubc, 1);
 notchMask(kNotch) = true;
+notchMask(prm.DCIdx) = true;                     % DC置空, 恒排除出噪声估计/平滑
 cleanRows = ~notchMask;
 
 %% 2) 生成本地参考信号 (接收端独立生成, 与发送端一致)
@@ -72,14 +73,17 @@ dataSyms = ExtractData(eqGrid, prm);
 %% 6) 软判决解调: 输出比特LLR (max-log)
 rxLLR = DemodulateSoft(dataSyms, prm.Modulation, noiseVar);
 
-%% 6.5) 频域去干扰: 置零污染区子载波LLR (按擦除处理)
+%% 6.5) 频域去干扰: 置零污染区子载波LLR (按擦除处理; DC已在数据流外, 无需擦除)
 if any(notchMask)
-    Nsc = prm.NSubc;  Qm = prm.Qm;
+    Qm = prm.Qm;
     NsymData = prm.NSym - prm.NPilot;           % 数据符号数 12
-    pos = (kNotch(:) - 1) * Qm;                 % 子载波k在符号内的基位置
-    pos = pos + (0:Qm-1);                        % 该子载波的Qm个bit
+    NDataSubc = prm.NDataSubc;
+    kPhys = find(notchMask);                     % 被擦除的物理子载波行
+    kPhys = kPhys(kPhys ~= prm.DCIdx);           % DC无数据, 不在数据流内
+    dataIdx = kPhys - 1 - (kPhys > prm.DCIdx);   % 物理行 -> 数据流0-based索引
+    pos = dataIdx(:) * Qm + (0:Qm-1);            % 该子载波的Qm个bit
     pos = pos(:);
-    posAll = pos + (0:NsymData-1) * Nsc * Qm;    % 扩展到12个数据符号
+    posAll = pos + (0:NsymData-1) * NDataSubc * Qm;
     rxLLR(posAll(:)) = 0;                        % 擦除(0=无信息)
 end
 
@@ -95,8 +99,8 @@ Km = segInfo.Km;
 Cp = segInfo.Cp;
 Cm = segInfo.Cm;
 
-% 总可用bit数
-G = prm.NSubc * (prm.NSym - prm.NPilot) * prm.NL * prm.Qm;
+% 总可用bit数 (DC置空: 1199子载波)
+G = prm.NDataSubc * (prm.NSym - prm.NPilot) * prm.NL * prm.Qm;
 
 % 块长度序列
 Krs = [repmat(Km, Cm, 1); repmat(Kp, Cp, 1)];
@@ -107,8 +111,8 @@ ptr = 1;
 for r = 1:C
     Kr = Krs(r);
 
-    % 计算本码块速率匹配输出长度
-    E = prm.NL * prm.Qm * floor(G / (prm.NL * prm.Qm * C));
+    % 计算本码块速率匹配输出长度 (36.212 5.1.4.1.2, 含余数分配)
+    E = rateMatchEr(G, prm.Qm, prm.NL, C, r);
 
     % 提取本码块的接收bit
     cbBits = descrambled(ptr:ptr+E-1);

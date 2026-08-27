@@ -14,8 +14,8 @@ rxGrid = OFDMDemod(rxAvg, prm);
 [rs0, rs1] = RefSignalGen(prm);
 H = ChanEst(rxGrid, rs0, rs1, prm);
 
-% 污染区掩码 (与 OFDM_RxMain 的 NotchMHz 口径一致: DC±2.25MHz)
-notchMask = false(prm.NSubc, 1); notchMask(451:750) = true;
+% 污染区掩码 (与 OFDM_RxMain 口径一致: DC±2.25MHz + DC置空行)
+notchMask = false(prm.NSubc, 1); notchMask(451:750) = true; notchMask(prm.DCIdx) = true;
 for l = 1:prm.NSym
     h = H(:, l); h(notchMask) = NaN;
     h = movmean(h, 64, 'omitnan');
@@ -39,7 +39,7 @@ bitsCRC = CRCAttach(bits, '24A');
 cbOutputs = cell(segInfo.C, 1);
 for r = 1:segInfo.C
     coded = TurboEncode(cbs{r}, segInfo.K(r));
-    cbOutputs{r} = RateMatch(coded, segInfo.K(r), segInfo.C, info.G, info.Qm, prm.NL, prm.RV);
+    cbOutputs{r} = RateMatch(coded, segInfo.K(r), segInfo.C, info.G, info.Qm, prm.NL, prm.RV, r);
 end
 codedBits = CodeBlockCat(cbOutputs);
 scrambled = Scramble(codedBits, prm);
@@ -48,7 +48,7 @@ txGrid = ResMap(sym, rs0, rs1, prm);
 txDataSyms = ExtractData(txGrid, prm);
 
 err = dataSyms - txDataSyms;
-Nsc = prm.NSubc; NsymData = prm.NSym - prm.NPilot;
+Nsc = prm.NDataSubc; NsymData = prm.NSym - prm.NPilot;   % DC置空: 1199子载波
 errM = reshape(err, Nsc, NsymData);
 txM  = reshape(txDataSyms, Nsc, NsymData);
 snrPer = 10*log10(mean(abs(txM).^2, 2) ./ (mean(abs(errM).^2, 2) + eps));

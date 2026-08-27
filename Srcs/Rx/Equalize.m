@@ -26,4 +26,7 @@ switch upper(method)
         error('Equalize: 不支持的均衡方法 %s (仅支持 ZF 或 MMSE)', method);
 end
 
+% DC置空(0/0=NaN)等无信道位置: 均衡结果置0 (该处无数据, 会被ExtractData跳过)
+eqGrid(~isfinite(eqGrid)) = 0;
+
 end

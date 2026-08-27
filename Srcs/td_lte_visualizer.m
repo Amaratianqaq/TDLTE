@@ -16,34 +16,43 @@ Fs = 30.72e6;          % 采样率 30.72MHz
 
 %% ==================== 界面 ====================
 f = figure('Name','TD-LTE Tx/Rx 信号可视化','NumberTitle','off','MenuBar','none', ...
-    'Position',[80 60 1500 880], 'Color',[0.94 0.94 0.94]);
+    'Position',[40 40 1520 940], 'Color',[0.94 0.94 0.94]);
 
-% --- 顶部控制条 ---
-uicontrol(f,'Style','text','String','运行模式:','Position',[15 845 62 20],'HorizontalAlignment','right');
-popMode = uicontrol(f,'Style','popupmenu','String',{'仿真(加噪)','真实环回','加载数据(.mat)'},'Position',[80 843 130 24]);
+% --- 顶部控制条 (统一高度/字体, 整齐排列) ---
+uicontrol(f,'Style','text','String','运行模式','Units','normalized', ...
+    'Position',[0.010 0.955 0.055 0.025],'FontSize',11,'FontWeight','bold');
+popMode = uicontrol(f,'Style','popupmenu','String',{'仿真(加噪)','真实环回','加载数据(.mat)'}, ...
+    'Units','normalized','Position',[0.070 0.950 0.105 0.035],'FontSize',11);
 
-uicontrol(f,'Style','text','String','调制:','Position',[225 845 40 20],'HorizontalAlignment','right');
-popMod  = uicontrol(f,'Style','popupmenu','String',{'QPSK','16QAM','64QAM'},'Position',[268 843 80 24]);
+uicontrol(f,'Style','text','String','调制','Units','normalized', ...
+    'Position',[0.195 0.955 0.035 0.025],'FontSize',11,'FontWeight','bold');
+popMod  = uicontrol(f,'Style','popupmenu','String',{'QPSK','16QAM','64QAM'}, ...
+    'Units','normalized','Position',[0.235 0.950 0.065 0.035],'FontSize',11);
 
-uicontrol(f,'Style','text','String','SNR(dB):','Position',[365 845 55 20],'HorizontalAlignment','right');
-sldSNR  = uicontrol(f,'Style','slider','Min',0,'Max',40,'Value',25,'Position',[425 845 140 20]);
-txtSNR  = uicontrol(f,'Style','text','String','25 dB','Position',[570 845 50 20]);
+uicontrol(f,'Style','text','String','SNR(dB)','Units','normalized', ...
+    'Position',[0.315 0.955 0.055 0.025],'FontSize',11,'FontWeight','bold');
+sldSNR  = uicontrol(f,'Style','slider','Min',0,'Max',40,'Value',25, ...
+    'Units','normalized','Position',[0.375 0.952 0.150 0.030]);
+txtSNR  = uicontrol(f,'Style','text','String','25 dB','Units','normalized', ...
+    'Position',[0.535 0.955 0.050 0.025],'FontSize',11,'HorizontalAlignment','left');
 set(sldSNR,'Callback',@(s,e) set(txtSNR,'String',sprintf('%.0f dB',get(sldSNR,'Value'))));
 
-btnRun  = uicontrol(f,'Style','pushbutton','String','运行','Position',[640 843 70 28]);
+btnRun  = uicontrol(f,'Style','pushbutton','String','▶ 运行','Units','normalized', ...
+    'Position',[0.615 0.945 0.090 0.045],'FontSize',14,'FontWeight','bold', ...
+    'BackgroundColor',[0.20 0.62 0.35],'ForegroundColor','w');
 
-uicontrol(f,'Style','text','String','状态:','Position',[730 845 40 20],'HorizontalAlignment','right');
-txtStatus = uicontrol(f,'Style','text','String','就绪 - 选择模式后点"运行"', ...
-    'Position',[775 838 700 40],'HorizontalAlignment','left');
-
-% --- 5 个绘图区 ---
-axTx    = subplot(2,3,1,'Parent',f);  title(axTx,'Tx 时域 I/Q');
-axRxRaw = subplot(2,3,2,'Parent',f);  title(axRxRaw,'Rx 原始时域 I/Q');
-axSpec  = subplot(2,3,3,'Parent',f);  title(axSpec,'频谱对比 (相对dB)');
-axCon   = subplot(2,3,4,'Parent',f);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
-axInfo  = subplot(2,3,5,'Parent',f);  title(axInfo,'处理信息');
-axis(axInfo,'off');
+% --- 2×2 绘图区 ---
+axTx    = subplot('Position',[0.055 0.50 0.430 0.415]);  title(axTx,'Tx 时域 I/Q (峰值归一化)');
+axRxRaw = subplot('Position',[0.545 0.50 0.430 0.415]);  title(axRxRaw,'Rx 时域 I/Q (峰值归一化)');
+axSpec  = subplot('Position',[0.055 0.10 0.430 0.355]);  title(axSpec,'频谱对比 (相对dB, 已去直流)');
+axCon   = subplot('Position',[0.545 0.10 0.430 0.355]);  title(axCon,'星座图: 理想(x) vs Rx均衡后(.)');
 grid(axTx,'on'); grid(axRxRaw,'on'); grid(axSpec,'on'); grid(axCon,'on');
+
+% --- 底部信息区 (多行, 不遮挡图表) ---
+txtStatus = uicontrol(f,'Style','text','String','就绪 - 选择模式后点"运行"', ...
+    'Units','normalized','Position',[0.010 0.005 0.980 0.080], ...
+    'HorizontalAlignment','left','FontSize',11,'BackgroundColor','w', ...
+    'FontName','Consolas');
 
 set(btnRun,'Callback',@(s,e) runAll());
 set(f,'HandleVisibility','on');
@@ -97,14 +106,23 @@ set(f,'HandleVisibility','on');
                 info.mode = sprintf('加载 %s', fn);
         end
 
-        %% 绘制时域 (每4点抽1显示)
+        %% 绘制时域 (每4点抽1显示; 各自峰值归一化, 便于对比形状)
         t = (0:numel(txIQ)-1)/Fs * 1e6;   % us
         dec = 1:4:numel(txIQ);
-        plot(axTx, t(dec), real(txIQ(dec)), 'b', t(dec), imag(txIQ(dec)), 'r');
+        txN = txIQ / max(abs(txIQ));      % 峰值归一化到 ±1
+        rxN = rxIQ / max(abs(rxIQ));
+        plot(axTx, t(dec), real(txN(dec)), 'b', t(dec), imag(txN(dec)), 'r');
         xlabel(axTx,'us'); legend(axTx,{'I','Q'},'Location','best');
+        title(axTx,'Tx 时域 I/Q (峰值归一化)');
 
-        plot(axRxRaw, t(dec), real(rxIQ(dec)), 'b', t(dec), imag(rxIQ(dec)), 'r');
+        plot(axRxRaw, t(dec), real(rxN(dec)), 'b', t(dec), imag(rxN(dec)), 'r');
         xlabel(axRxRaw,'us'); legend(axRxRaw,{'I','Q'},'Location','best');
+        title(axRxRaw,'Rx 时域 I/Q (峰值归一化)');
+
+        % 统一 Tx/Rx 竖轴范围 (取两者较大者)
+        yr = max([max(abs(real(txN))), max(abs(imag(txN))), ...
+                  max(abs(real(rxN))), max(abs(imag(rxN)))]);
+        ylim(axTx, [-yr yr]); ylim(axRxRaw, [-yr yr]);
 
         %% 频谱对比 (各自归一化到峰值0dB, 消除TX/RX幅度尺度差异)
         [fA, mA] = specMag(txIQ,  Fs);
@@ -113,7 +131,7 @@ set(f,'HandleVisibility','on');
         mB = mB - max(mB);
         plot(axSpec, fA/1e6, mA, 'g', fB/1e6, mB, 'b');
         xlabel(axSpec,'MHz'); ylabel(axSpec,'相对dB');
-        legend(axSpec,{'Tx','Rx原始'},'Location','best');
+        legend(axSpec,{'Tx','Rx'},'Location','best');
         xlim(axSpec,[-15.36 15.36]); ylim(axSpec,[-70 5]);
 
         %% 真实/加载模式: 稳健同步(syncLTE: 频偏搜索+互相关) + 削波检测
@@ -178,8 +196,10 @@ end
 
 %% ==================== 工具函数 ====================
 function [f, m] = specMag(x, Fs)
+% 去直流后再做FFT, 避免DC尖峰在峰值归一化时把整个频谱压下去
+x = x(:).' - mean(x);
 N = numel(x);
-X = fft(x(:).', N);
+X = fft(x, N);
 f = (0:N-1)/N*Fs; f(f>Fs/2) = f(f>Fs/2) - Fs;
 m = 20*log10(abs(X) + eps);
 end

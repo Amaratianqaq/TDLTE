@@ -22,6 +22,7 @@ pilotIdx2 = prm.PilotSymbols(2) + 1;   % 符号10 -> 索引11
 H = zeros(NSubc, NSym);
 H(:, pilotIdx1) = rxGrid(:, pilotIdx1) ./ rs0;
 H(:, pilotIdx2) = rxGrid(:, pilotIdx2) ./ rs1;
+H(prm.DCIdx, :) = NaN;               % DC置空: 无导频, 信道估计置NaN(由后续平滑/均衡处理)
 
 %% 2) 时域线性插值 (从2个导频符号扩展到14个符号)
 % 导频位置: 4和11 (1-indexed)

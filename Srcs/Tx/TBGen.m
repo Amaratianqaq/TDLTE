@@ -14,7 +14,7 @@ bits = randi([0 1], prm.TBsize, 1);
 % 总可用编码bit数 (文档L91: 1200子载波 x 12数据符号 x Qm x NL)
 info.A = prm.TBsize;                        % 传输块长度
 info.B = prm.TBsize;                        % 加TB-CRC前长度(此处未加)
-info.G = prm.NSubc * (prm.NSym - prm.NPilot) * prm.NL * prm.Qm;
+info.G = prm.NDataSubc * (prm.NSym - prm.NPilot) * prm.NL * prm.Qm;   % 1200子载波中DC置空 -> 1199
 info.Modulation = prm.Modulation;
 info.Qm = prm.Qm;
 end
